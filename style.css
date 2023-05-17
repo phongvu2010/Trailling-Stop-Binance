@@ -1,7 +1,7 @@
 #MainMenu { visibility: hidden; }
 footer  { visibility: hidden; }
 
-.appview-container .main .block-container { margin-top: -95px; }
+/* .appview-container .main .block-container { margin-top: -95px; } */
 
 /* style form login */
 /* .appview-container .main .block-container [data-testid="stForm"] { margin-top: 140px; } */
