@@ -46,7 +46,7 @@ def getKlines2(symbol):
     return df
 
 
-print(getKlines2('btcusdt'))
+# print(getKlines2('btcusdt'))
 
 #     Open time
 #     Open
