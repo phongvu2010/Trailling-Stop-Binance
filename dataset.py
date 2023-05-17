@@ -1,4 +1,4 @@
-import csv
+# import csv
 import pandas as pd
 import streamlit as st
 
@@ -17,15 +17,9 @@ def getKlines(symbol, interval = Client.KLINE_INTERVAL_5MINUTE):
     df = pd.DataFrame(client.get_klines(symbol = symbol.upper(), interval = interval, limit = 1000))
     df = df[df.columns[0:6]]
 
-    columns = {
-        0: 'time',
-        1: 'open',
-        2: 'high',
-        3: 'low',
-        4: 'close',
-        5: 'volume'
-    }
-    df.rename(columns = columns, inplace = True)
+    df.rename(columns = {0: 'time', 1: 'open', 2: 'high', 3: 'low', 4: 'close', 5: 'volume'},
+              inplace = True)
+
     df['time'] = df['time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
 
     path_file = 'data/' + symbol.upper() + '.feather'
