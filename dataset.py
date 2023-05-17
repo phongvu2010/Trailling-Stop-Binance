@@ -1,0 +1,62 @@
+import csv
+import pandas as pd
+import streamlit as st
+
+from binance.client import Client
+from datetime import datetime
+from os import path
+
+client = Client(st.secrets['binance']['api_key'], st.secrets['binance']['api_secret'])
+
+@st.cache_data(ttl = 60)    # Cache data for 1 hour (=60 seconds)
+def getPrices():
+    return pd.DataFrame(client.get_all_tickers())
+
+@st.cache_data(ttl = 300)    # Cache data for 5 minute
+def getKlines(symbol, interval = Client.KLINE_INTERVAL_5MINUTE):
+    df = pd.DataFrame(client.get_klines(symbol = symbol.upper(), interval = interval, limit = 1000))
+    df = df[df.columns[0:6]]
+
+    columns = {
+        0: 'time',
+        1: 'open',
+        2: 'high',
+        3: 'low',
+        4: 'close',
+        5: 'volume'
+    }
+    df.rename(columns = columns, inplace = True)
+    df['time'] = df['time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
+
+    path_file = 'data/' + symbol.upper() + '.feather'
+    if path.exists(path_file):
+        df_ = pd.read_feather(path_file)
+        df = pd.concat([df, df_]).drop_duplicates(subset = 'time', keep = 'last')
+    df.to_feather(path_file)
+
+    df.set_index('time', inplace = True)
+
+    return df
+
+def getKlines2(symbol):
+    path_file = 'data/' + symbol.upper() + '.feather'
+    df = pd.read_feather(path_file)
+    df.set_index('time', inplace = True)
+
+    return df
+
+
+print(getKlines2('btcusdt'))
+
+#     Open time
+#     Open
+#     High
+#     Low
+#     Close
+#     Volume
+#     Close time
+#     Quote asset volume
+#     Number of trades
+#     Taker buy base asset volume
+#     Taker buy quote asset volume
+#     Ignore
