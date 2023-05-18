@@ -20,6 +20,7 @@
 # pip3 freeze > requirements.txt
 
 # binance-connector
+plotly
 python-binance
 streamlit
 watchdog
