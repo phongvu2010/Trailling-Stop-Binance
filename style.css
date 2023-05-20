@@ -3,10 +3,25 @@ footer  { visibility: hidden; }
 
 .appview-container .main .block-container { margin-top: -65px; }
 
-/* .appview-container [data-testid = 'stSidebar'] .block-container {
+@media (min-width: 990px) {
+/* @media (max-width: 320px) { */
+.appview-container [data-testid = 'stSidebar'] .block-container {
     margin-top: -50px;
     width: 360px;
-} */
+    }
+}
 
-/* style form login */
-/* .appview-container .main .block-container [data-testid = 'stForm'] { margin-top: 140px; } */
+/* .appview-container .main .block-container [data-testid = 'stExpander'] input, select { */
+    /* padding: 2px; */
+	/* color: #333; */
+	/* font-family: Arial, Helvetica, sans-serif;
+	font-size: 15px; */
+	/* background: #fafafa; */
+    /* vertical-align: middle;
+	outline: 0;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box; */
+/* } */
+
+
