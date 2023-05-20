@@ -11,17 +11,9 @@ footer  { visibility: hidden; }
     }
 }
 
-/* .appview-container .main .block-container [data-testid = 'stExpander'] input, select { */
-    /* padding: 2px; */
-	/* color: #333; */
-	/* font-family: Arial, Helvetica, sans-serif;
-	font-size: 15px; */
-	/* background: #fafafa; */
-    /* vertical-align: middle;
-	outline: 0;
+/* .appview-container .main .block-container [data-testid = 'stExpander'] input, select {
+    vertical-align: middle;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box; */
-/* } */
-
-
+    -webkit-box-sizing: border-box;
+} */
