@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -44,7 +45,9 @@ with st.sidebar:
         with columns[1]:
             limit_price = st.number_input('Limit Price', format = '%.8f')
 
-        detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0, step = 0.1, format = '%.2f')
+        detail = st.slider('Trailing Delta', value = 0.5,
+                           min_value = 0.1, max_value = 10.0,
+                           step = 0.1, format = '%.2f')
 
         # Every form must have a submit button.
         submitted = st.form_submit_button('Add Order', type = 'primary')
@@ -60,6 +63,13 @@ df.index = pd.to_datetime(df.index)
 df.sort_index(inplace = True)
 df.ffill(inplace = True)
 df.dropna(inplace = True)
+df.reset_index(drop = True, inplace = True)
+df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
+                'close': 'float', 'volume': 'float', 'act_price': 'float',
+                'limit_price': 'float', 'delta': 'float'})
+df['actived'] = np.where(df['type'] == 'Buy / Long',
+                         np.where(df['act_price'] > df['close'], df['act_price'], np.nan),
+                         np.where(df['act_price'] < df['close'], df['act_price'], np.nan))
 
 with st.container():
     st.subheader('Trailling Stop on Binance')
@@ -112,6 +122,16 @@ with st.container():
     fig.append_trace(
         go.Scatter(
             x = df.index,
+            y = df.actived,
+            line = dict(color = '#BEF702', width = 1),
+            name = 'Actived',
+            showlegend = False,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
             y = df.limit_price,
             line = dict(color = '#FF4E03', width = 1),
             name = 'Limit Price',
@@ -127,3 +147,5 @@ with st.container():
         )
     )
     st.plotly_chart(fig, use_container_width = True)
+
+    st.dataframe(df, use_container_width = True)
