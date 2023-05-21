@@ -115,7 +115,7 @@ with st.container():
             y = df.act_price,
             line = dict(color = '#034EFF', width = 1),
             name = 'Act Price',
-            showlegend = False,
+            showlegend = True,
             mode = 'lines'
         ), row = 1, col = 1
     )
@@ -125,7 +125,7 @@ with st.container():
             y = df.actived,
             line = dict(color = '#BEF702', width = 1),
             name = 'Actived',
-            showlegend = False,
+            showlegend = True,
             mode = 'lines'
         ), row = 1, col = 1
     )
@@ -135,15 +135,17 @@ with st.container():
             y = df.limit_price,
             line = dict(color = '#FF4E03', width = 1),
             name = 'Limit Price',
-            showlegend = False,
+            showlegend = True,
             mode = 'lines'
         ), row = 1, col = 1
     )
     fig.update_layout(
         go.Layout(
             autosize = True,
-            margin = go.layout.Margin(l = 5, r = 5, b = 20, t = 20, pad = 8),
-            xaxis_rangeslider_visible = False
+            margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 30, pad = 8),
+            xaxis_rangeslider_visible = False,
+            # legend = dict(yanchor = 'top', y = 1, xanchor = 'left', x = 0)
+            legend = dict(orientation = 'h', yanchor = 'top', y = 1.03, xanchor = 'left', x = 0)
         )
     )
     st.plotly_chart(fig, use_container_width = True)
