@@ -25,8 +25,8 @@ def getKlines(symbol, interval = Client.KLINE_INTERVAL_5MINUTE):
     path_file = 'data/' + symbol.upper() + '.feather'
     if path.exists(path_file):
         df_ = pd.read_feather(path_file)
-        df = pd.concat([df, df_]).drop_duplicates(subset = 'time', keep = 'last')
-        df.reset_index(drop = True, inplace = True)    
+        df = pd.concat([df, df_]).drop_duplicates(subset = 'time', keep = 'first')
+        df.reset_index(drop = True, inplace = True)
     df.to_feather(path_file)
 
     return df.set_index('time').sort_index()

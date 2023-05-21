@@ -3,14 +3,15 @@ import streamlit as st
 
 from dataset import getPrices, getKlines
 from datetime import datetime
+from os import path
 from plotly import graph_objs as go
-# from plotly.subplots import make_subplots
+from plotly.subplots import make_subplots
 
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = st.secrets['page_title'],
                    page_icon = '✅', layout = 'wide',
-                   initial_sidebar_state = 'expanded')
+                   initial_sidebar_state = 'collapsed')
 
 # Inject CSS with Markdown
 with open('style.css') as f:
@@ -41,58 +42,88 @@ with st.sidebar:
             act_price = st.number_input('Act Price', float(prices.at[symbol, 'price']), format = '%.8f')
 
         with columns[1]:
-            limit_price = st.number_input('Limit Price', float(prices.at[symbol, 'price']) * 0.9, format = '%.8f')
+            limit_price = st.number_input('Limit Price', format = '%.8f')
 
         detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0, step = 0.1, format = '%.2f')
 
         # Every form must have a submit button.
         submitted = st.form_submit_button('Add Order', type = 'primary')
 
-if submitted:
-    add_order = {
-        'symbol': prices.at[symbol, 'symbol'],
-        'type': type_order,
-        'date_order': datetime.combine(date_order, time_order),
-        'act_price': round(act_price, 8),
-        'limit_price': round(limit_price, 8),
-        'delta': detail
-    }
-    df = pd.DataFrame(list(add_order.items())).set_index(0).T
-    st.dataframe(df)
-    # st.write('Delta', detail)
-
+orders = pd.read_csv('data/Orders.csv')
+order = orders[orders['symbol'] == prices.at[symbol, 'symbol']]
+order.set_index('date_order', inplace = True)
 
 data = getKlines(prices.at[symbol, 'symbol'])
 
-fig = go.Figure()
-# fig.add_trace(
-#     go.Scatter(
-#         x = data.index,
-#         y = data.close,
-#         name = 'Price',
-#         mode = 'lines'
-#     )
-# )
+df = data.join(order, how = 'outer')
+df.index = pd.to_datetime(df.index)
+df.sort_index(inplace = True)
+df.ffill(inplace = True)
+df.dropna(inplace = True)
 
-fig.add_trace(
-    go.Candlestick(
-        x = data.index,
-        open = data.open,
-        high = data.high,
-        low = data.low,
-        close = data.close,
-        increasing_line_color = 'green',
-        decreasing_line_color = 'red',
-        showlegend = False
+with st.container():
+    st.subheader('Trailling Stop on Binance')
+
+    st.dataframe(order, use_container_width = True)
+
+    if submitted:
+        if (act_price > 0) & (limit_price > 0):
+            add_order = {
+                'date_order': datetime.combine(date_order, time_order),
+                'symbol': prices.at[symbol, 'symbol'],
+                'type': type_order,
+                'act_price': round(act_price, 8),
+                'limit_price': round(limit_price, 8),
+                'delta': detail
+            }
+            df = pd.DataFrame(list(add_order.items())).set_index(0).T
+
+            path_file = 'data/Orders.csv'
+            if path.exists(path_file):
+                df_ = pd.read_csv(path_file)
+                df = pd.concat([df, df_]).drop_duplicates(subset = 'symbol', keep = 'first')
+                df.reset_index(drop = True, inplace = True)
+            df.to_csv(path_file, index = False)
+
+    # fig = go.Figure()
+    fig = make_subplots(rows = 1, cols = 1)
+    fig.append_trace(
+        go.Candlestick(
+            x = df.index,
+            open = df.open,
+            high = df.high,
+            low = df.low,
+            close = df.close,
+            increasing_line_color = 'green',
+            decreasing_line_color = 'red',
+            showlegend = False
+        ), row = 1, col = 1
     )
-)
-
-fig.update_layout(
-    go.Layout(
-        autosize = True,
-        margin = go.layout.Margin(l = 5, r = 5, b = 20, t = 20, pad = 8),
-        xaxis_rangeslider_visible = False
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.act_price,
+            line = dict(color = '#034EFF', width = 1),
+            name = 'Act Price',
+            showlegend = False,
+            mode = 'lines'
+        ), row = 1, col = 1
     )
-)
-
-st.plotly_chart(fig, use_container_width = True)
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.limit_price,
+            line = dict(color = '#FF4E03', width = 1),
+            name = 'Limit Price',
+            showlegend = False,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.update_layout(
+        go.Layout(
+            autosize = True,
+            margin = go.layout.Margin(l = 5, r = 5, b = 20, t = 20, pad = 8),
+            xaxis_rangeslider_visible = False
+        )
+    )
+    st.plotly_chart(fig, use_container_width = True)
