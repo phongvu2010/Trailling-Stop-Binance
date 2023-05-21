@@ -3,7 +3,7 @@ import streamlit as st
 import time  # to simulate a real time data, time loop
 
 from binance.client import Client
-from binance.websockets import BinanceSocketManager
+from websockets import BinanceSocketManager
 from datetime import datetime
 from plotly import graph_objs as go
 from threading import Lock
