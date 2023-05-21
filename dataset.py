@@ -1,4 +1,3 @@
-# import csv
 import pandas as pd
 import streamlit as st
 
@@ -6,7 +5,10 @@ from binance.client import Client
 from datetime import datetime
 from os import path
 
-client = Client(st.secrets['binance']['api_key'], st.secrets['binance']['api_secret'])
+api_key = 'orxThbVS0OyqnMZ1shu51RxPYXWS1HCA5lxc8mDQ6AH1MOHHslpBjgYXSflxnDJX'
+api_secret = '8YBdmg31G7Wcv8GOuyAykXSPrUzhq7XCDGTOUHc4rjEm8kJhVTmKf4XqbOb5wUtP'
+client = Client(api_key, api_secret)
+# client = Client(st.secrets['binance']['api_key'], st.secrets['binance']['api_secret'])
 
 @st.cache_data(ttl = 120)    # Cache data for 2 minute
 def getPrices():
