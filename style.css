@@ -1,7 +1,7 @@
 /* #MainMenu { visibility: hidden; } */
 footer  { visibility: hidden; }
 
-.appview-container .main .block-container { margin-top: -65px; }
+.appview-container .main .block-container { margin-top: -90px; }
 
 @media (min-width: 990px) {
 /* @media (max-width: 320px) { */

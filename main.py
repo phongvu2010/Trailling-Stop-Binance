@@ -9,7 +9,7 @@ from plotly import graph_objs as go
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = st.secrets['page_title'],
-                   page_icon = '📈', layout = 'wide',
+                   page_icon = '✅', layout = 'wide',
                    initial_sidebar_state = 'expanded')
 
 # Inject CSS with Markdown

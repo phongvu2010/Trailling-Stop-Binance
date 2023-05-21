@@ -23,5 +23,6 @@
 plotly
 python-binance
 streamlit
+streamlit-lightweight-charts
 watchdog
 # websocket-client

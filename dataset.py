@@ -31,12 +31,6 @@ def getKlines(symbol, interval = Client.KLINE_INTERVAL_5MINUTE):
 
     return df.set_index('time').sort_index()
 
-def getKlines2(symbol):
-    path_file = 'data/' + symbol.upper() + '.feather'
-    df = pd.read_feather(path_file)
-
-    return df.set_index('time').sort_index()
-
 # df = getPrices()
 # df = getKlines('btcusdt')
 # print(df.dtypes)
