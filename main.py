@@ -51,7 +51,7 @@ with st.sidebar:
 
 orders = pd.read_csv('data/Orders.csv')
 order = orders[orders['symbol'] == prices.at[symbol, 'symbol']]
-order.set_index('date_order', inplace = True)
+order.set_index('time_order', inplace = True)
 
 data = getKlines(prices.at[symbol, 'symbol'])
 
@@ -64,12 +64,12 @@ df.dropna(inplace = True)
 with st.container():
     st.subheader('Trailling Stop on Binance')
 
-    st.dataframe(order, use_container_width = True)
+    st.dataframe(orders, use_container_width = True)
 
     if submitted:
         if (act_price > 0) & (limit_price > 0):
             add_order = {
-                'date_order': datetime.combine(date_order, time_order),
+                'time_order': datetime.combine(date_order, time_order),
                 'symbol': prices.at[symbol, 'symbol'],
                 'type': type_order,
                 'act_price': round(act_price, 8),
