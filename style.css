@@ -7,7 +7,7 @@ footer  { visibility: hidden; }
 /* @media (max-width: 320px) { */
 .appview-container [data-testid = 'stSidebar'] .block-container {
     margin-top: -50px;
-    width: 364px;
+    width: 330px;
     }
 }
 

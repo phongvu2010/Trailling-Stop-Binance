@@ -12,13 +12,14 @@ from plotly.subplots import make_subplots
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = st.secrets['page_title'],
                    page_icon = '✅', layout = 'centered',
-                   initial_sidebar_state = 'collapsed')
+                   initial_sidebar_state = 'auto')
 
 # Inject CSS with Markdown
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-prices = getPrices()
+prices = getPrices().set_index('symbol').astype('float')
+
 path_order_file = 'data/Orders.csv'
 df_order = pd.DataFrame()
 if path.exists(path_order_file):
@@ -34,17 +35,19 @@ def getKlinesOrdered(symbol, order):
     df.sort_index(inplace = True)
     df.ffill(inplace = True)
     df.dropna(inplace = True)
+    df = df[['symbol', 'type', 'open', 'high', 'low', 'close',
+             'volume', 'act_price', 'limit_price', 'delta']]
 
     df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
                     'close': 'float', 'volume': 'float', 'act_price': 'float',
                     'limit_price': 'float', 'delta': 'float'})
 
-    df['actived'] = np.where(df['type'] == 'Buy / Long',
+    df['actived'] = np.where(df['type'] == 'Buy',
                              np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
                              np.where(df['act_price'] < df['high'], df['act_price'], np.nan))
     df['actived'].ffill(inplace = True)
 
-    df['limited'] = np.where(df['type'] == 'Buy / Long',
+    df['limited'] = np.where(df['type'] == 'Buy',
                              np.where((df['limit_price'] > df['low']) & df['actived'].notna(),
                                       df['limit_price'], np.nan),
                              np.where((df['limit_price'] < df['high']) & df['actived'].notna(),
@@ -57,15 +60,17 @@ def getKlinesOrdered(symbol, order):
     df_ = df.copy().dropna(subset = ['actived'])
     for i in df_.index:
         a = df_.loc[:i, ['high', 'low', 'close', 'type', 'delta']]
-        if a.at[i, 'type'] == 'Buy / Long':
-            b = a.at[i, 'low'] # b * 100 + b * (100 + 5) = b * (100 + 100 + 5)
-            df_.at[i, 'stoploss'] = b * (1 + (a.at[i, 'delta'] / 100)) if b <= min(a['low'].to_list()) else np.nan
+        if a.at[i, 'type'] == 'Buy':
+            b = a.at[i, 'low']
+            df_.at[i, 'stoploss'] = b * (1 + (a.at[i, 'delta'] / 100)) \
+                if b <= min(a['low'].to_list()) else np.nan
         else:
-            b = a.at[i, 'high'] # b * (95)
-            df_.at[i, 'stoploss'] = b * (1 - (a.at[i, 'delta'] / 100)) if b >= max(a['high'].to_list()) else np.nan
+            b = a.at[i, 'high']
+            df_.at[i, 'stoploss'] = b * (1 - (a.at[i, 'delta'] / 100)) \
+                if b >= max(a['high'].to_list()) else np.nan
     df['stoploss'] = df_['stoploss'].ffill()
 
-    df['cuttedloss'] = np.where(df['type'] == 'Buy / Long',
+    df['cuttedloss'] = np.where(df['type'] == 'Buy',
                                 np.where(df['stoploss'] < df['close'], df['close'], np.nan),
                                 np.where(df['stoploss'] > df['close'], df['close'], np.nan))
     df['cuttedloss'].ffill(inplace = True)
@@ -76,10 +81,10 @@ def getKlinesOrdered(symbol, order):
     return df
 
 with st.sidebar:
-    with st.expander('Add Order', expanded = False):
+    # with st.expander('Add Order', expanded = True):
         columns = st.columns(2)
         with columns[0]:
-            symbol = st.selectbox('Symbol', prices['symbol'].to_list())
+            symbol = st.selectbox('Symbol', prices.index.to_list())
 
         with columns[1]:
             type_order = st.selectbox('Type', ('Buy', 'Sell'))
@@ -93,13 +98,13 @@ with st.sidebar:
 
         columns = st.columns(2)
         with columns[0]:
-            price = float(prices[prices['symbol'] == symbol]['price'])
-            act_price = st.number_input('Act Price', price, format = '%.8f')
+            price = prices.at[symbol, 'price']
+            act_price = st.number_input('Act Price', price, step = 0.00000001, format = '%.8f')
 
         with columns[1]:
             if type_order == 'Buy': limit = act_price * 0.95
             else: limit = act_price * 1.05
-            limit_price = st.number_input('Limit Price', limit, format = '%.8f')
+            limit_price = st.number_input('Limit Price', limit, step = 0.00000001, format = '%.8f')
 
         detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
 
@@ -118,8 +123,9 @@ if submitted:
     }
     df_add_order = pd.DataFrame(list(add_order.items())).set_index(0).T
     df_order = pd.concat([df_order, df_add_order]) \
-        .drop_duplicates(subset = 'symbol', keep = 'last') \
-            .reset_index(drop = True)
+                .drop_duplicates(subset = 'symbol', keep = 'last') \
+                .sort_values('time_order', ascending = False) \
+                .reset_index(drop = True)
     df_order.to_csv(path_order_file, index = False)
 
 with st.container():
@@ -131,70 +137,85 @@ with st.container():
         order = df_order[df_order['symbol'] == symbol_order]
         st.write(order.to_dict('records'))
 
-    df = getKlinesOrdered(symbol_order, order)
+    freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
+    period = st.radio('Period', freqs, index = 3, horizontal = True, label_visibility = 'collapsed')
+
+    df = getKlinesOrdered(symbol_order, order).reset_index()
+    df = df.resample(period, on = 'index').agg({
+        'open': 'first',
+        'high': 'max',
+        'low': 'min',
+        'close': 'last',
+        'act_price': 'last',
+        'actived': 'last',
+        'limit_price': 'last',
+        'stoploss': 'last'
+        })
+
     # data = getKlines(symbol)
     # df = pd.concat([df, data])
 
-    # fig = make_subplots(rows = 1, cols = 1)
-    # fig.append_trace(
-    #     go.Candlestick(
-    #         x = df.index,
-    #         open = df.open,
-    #         high = df.high,
-    #         low = df.low,
-    #         close = df.close,
-    #         increasing_line_color = 'green',
-    #         decreasing_line_color = 'red',
-    #         showlegend = False
-    #     ), row = 1, col = 1
-    # )
-    # fig.append_trace(
-    #     go.Scatter(
-    #         x = df.index,
-    #         y = df.act_price,
-    #         line = dict(color = '#034EFF', width = 1, dash = 'dot'),
-    #         name = 'Act Price',
-    #         showlegend = True,
-    #         mode = 'lines'
-    #     ), row = 1, col = 1
-    # )
-    # fig.append_trace(
-    #     go.Scatter(
-    #         x = df.index,
-    #         y = df.actived,
-    #         line = dict(color = '#BEF702', width = 1),
-    #         name = 'Actived',
-    #         showlegend = True,
-    #         mode = 'lines'
-    #     ), row = 1, col = 1
-    # )
-    # fig.append_trace(
-    #     go.Scatter(
-    #         x = df.index,
-    #         y = df.limit_price,
-    #         line = dict(color = '#FF4E03', width = 1, dash = 'dot'),
-    #         name = 'Limit Price',
-    #         showlegend = True,
-    #         mode = 'lines'
-    #     ), row = 1, col = 1
-    # )
-    # fig.append_trace(
-    #     go.Scatter(
-    #         x = df.index,
-    #         y = df.stoploss,
-    #         line = dict(color = '#F78502', width = 1),
-    #         name = 'StopLoss',
-    #         showlegend = True,
-    #         mode = 'lines'
-    #     ), row = 1, col = 1
-    # )
-    # fig.update_layout(
-    #     go.Layout(
-    #         autosize = True,
-    #         margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 30, pad = 8),
-    #         xaxis_rangeslider_visible = False,
-    #         legend = dict(orientation = 'h', yanchor = 'top', y = 1.03, xanchor = 'left', x = 0)
-    #     )
-    # )
-    # st.plotly_chart(fig, use_container_width = True)
-    st.dataframe(df, use_container_width = True)
+    fig = make_subplots(rows = 1, cols = 1)
+    fig.append_trace(
+        go.Candlestick(
+            x = df.index,
+            open = df.open,
+            high = df.high,
+            low = df.low,
+            close = df.close,
+            increasing_line_color = 'green',
+            decreasing_line_color = 'red',
+            showlegend = False
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.act_price,
+            line = dict(color = '#034EFF', width = 1, dash = 'dot'),
+            name = 'Act Price',
+            showlegend = True,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.actived,
+            line = dict(color = '#BEF702', width = 1),
+            name = 'Actived',
+            showlegend = True,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.limit_price,
+            line = dict(color = '#FF4E03', width = 1, dash = 'dot'),
+            name = 'Limit Price',
+            showlegend = True,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.stoploss,
+            line = dict(color = '#F78502', width = 1),
+            name = 'StopLoss',
+            showlegend = True,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.update_layout(
+        go.Layout(
+            autosize = True,
+            margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 30, pad = 8),
+            xaxis_rangeslider_visible = False,
+            legend = dict(orientation = 'h', yanchor = 'top', y = 1.03, xanchor = 'left', x = 0)
+        )
+    )
+    st.plotly_chart(fig, use_container_width = True)
+
+    # st.dataframe(df, use_container_width = True)
