@@ -52,50 +52,69 @@ with st.sidebar:
         # Every form must have a submit button.
         submitted = st.form_submit_button('Add Order', type = 'primary')
 
+    if submitted & (act_price > 0) & (limit_price > 0):
+        add_order = {
+            'time_order': datetime.combine(date_order, time_order),
+            'symbol': prices.at[symbol, 'symbol'],
+            'type': type_order,
+            'act_price': round(act_price, 8),
+            'limit_price': round(limit_price, 8),
+            'delta': detail
+        }
+        df = pd.DataFrame(list(add_order.items())).set_index(0).T
+
+        path_file = 'data/Orders.csv'
+        if path.exists(path_file):
+            df_ = pd.read_csv(path_file)
+            df = pd.concat([df, df_]).drop_duplicates(subset = 'symbol', keep = 'first')
+            df.reset_index(drop = True, inplace = True)
+        df.to_csv(path_file, index = False)
+
 orders = pd.read_csv('data/Orders.csv')
-order = orders[orders['symbol'] == prices.at[symbol, 'symbol']]
-order.set_index('time_order', inplace = True)
 
-data = getKlines(prices.at[symbol, 'symbol'])
+@st.cache_data(ttl = 300)
+def getKlinesOrdered(symbol_name):
+    order = orders[orders['symbol'] == symbol_name]
+    order.set_index('time_order', inplace = True)
 
-df = data.join(order, how = 'outer')
-df.index = pd.to_datetime(df.index)
-df.sort_index(inplace = True)
-df.ffill(inplace = True)
-df.dropna(inplace = True)
-df.reset_index(drop = True, inplace = True)
-df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
-                'close': 'float', 'volume': 'float', 'act_price': 'float',
-                'limit_price': 'float', 'delta': 'float'})
-df['actived'] = np.where(df['type'] == 'Buy / Long',
-                         np.where(df['act_price'] > df['close'], df['act_price'], np.nan),
-                         np.where(df['act_price'] < df['close'], df['act_price'], np.nan))
+    data = getKlines(symbol_name)
+
+    df = data.join(order, how = 'outer')
+    df.index = pd.to_datetime(df.index)
+    df.sort_index(inplace = True)
+    df.ffill(inplace = True)
+    df.dropna(inplace = True)
+    # df.reset_index(drop = True, inplace = True)
+    df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
+                    'close': 'float', 'volume': 'float', 'act_price': 'float',
+                    'limit_price': 'float', 'delta': 'float'})
+    df['actived'] = np.where(df['type'] == 'Buy / Long',
+                            np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
+                            np.where(df['act_price'] < df['high'], df['act_price'], np.nan))
+    df['actived'].ffill(inplace = True)
+    df['limited'] = np.where(df['type'] == 'Buy / Long',
+                            np.where((df['limit_price'] > df['low']) & df['actived'].notna(),
+                                     df['limit_price'], np.nan),
+                            np.where((df['limit_price'] < df['high']) & df['actived'].notna(),
+                                     df['limit_price'], np.nan))
+    df['limited'].ffill(inplace = True)
+    limited = df.dropna(subset = ['limited'])
+
+    df = pd.concat([df[df['limited'].isna()], limited.head(1)])
+
+    return df
 
 with st.container():
-    st.subheader('Trailling Stop on Binance')
+    st.title('Trailling Stop on Binance')
 
+    st.subheader('Ordered List ')
     st.dataframe(orders, use_container_width = True)
 
-    if submitted:
-        if (act_price > 0) & (limit_price > 0):
-            add_order = {
-                'time_order': datetime.combine(date_order, time_order),
-                'symbol': prices.at[symbol, 'symbol'],
-                'type': type_order,
-                'act_price': round(act_price, 8),
-                'limit_price': round(limit_price, 8),
-                'delta': detail
-            }
-            df = pd.DataFrame(list(add_order.items())).set_index(0).T
+    cols = st.columns(5)
+    symbol_name = cols[0].selectbox('Symbol', orders['symbol'].to_list(), label_visibility = 'collapsed')
 
-            path_file = 'data/Orders.csv'
-            if path.exists(path_file):
-                df_ = pd.read_csv(path_file)
-                df = pd.concat([df, df_]).drop_duplicates(subset = 'symbol', keep = 'first')
-                df.reset_index(drop = True, inplace = True)
-            df.to_csv(path_file, index = False)
-
-    # fig = go.Figure()
+    df = getKlinesOrdered(symbol_name)
+    
     fig = make_subplots(rows = 1, cols = 1)
     fig.append_trace(
         go.Candlestick(
@@ -113,7 +132,7 @@ with st.container():
         go.Scatter(
             x = df.index,
             y = df.act_price,
-            line = dict(color = '#034EFF', width = 1),
+            line = dict(color = '#034EFF', width = 1, dash = 'dot'),
             name = 'Act Price',
             showlegend = True,
             mode = 'lines'
@@ -133,8 +152,18 @@ with st.container():
         go.Scatter(
             x = df.index,
             y = df.limit_price,
-            line = dict(color = '#FF4E03', width = 1),
+            line = dict(color = '#FF4E03', width = 1, dash = 'dot'),
             name = 'Limit Price',
+            showlegend = True,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.limited,
+            line = dict(color = '#02F7F7', width = 1),
+            name = 'Limited',
             showlegend = True,
             mode = 'lines'
         ), row = 1, col = 1
