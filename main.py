@@ -102,6 +102,24 @@ def getKlinesOrdered(symbol_name):
 
     df = pd.concat([df[df['limited'].isna()], limited.head(1)])
 
+    df_ = df.copy().dropna(subset = ['actived'])
+    for i in df_.index:
+        a = df_.loc[:i, ['high', 'low', 'close', 'type', 'delta']]
+        b = a.at[i, 'low']
+        if a.at[i, 'type'] == 'Buy / Long':
+            df_.at[i, 'stoploss'] = b * (1 + a.at[i, 'delta'] / 100) if b <= min(a['low'].to_list()) else np.nan
+        else:
+            df_.at[i, 'stoploss'] = b * (1 - a.at[i, 'delta'] / 100) if b >= max(a['high'].to_list()) else np.nan
+    df['stoploss'] = df_['stoploss'].ffill()
+
+    df['cuttedloss'] = np.where(df['type'] == 'Buy / Long',
+                                np.where(df['stoploss'] < df['close'], df['close'], np.nan),
+                                np.where(df['stoploss'] > df['close'], df['close'], np.nan))
+    df['cuttedloss'].ffill(inplace = True)
+    cuttedloss = df.dropna(subset = ['cuttedloss'])
+
+    df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
+
     return df
 
 with st.container():
@@ -164,6 +182,16 @@ with st.container():
             y = df.limited,
             line = dict(color = '#02F7F7', width = 1),
             name = 'Limited',
+            showlegend = True,
+            mode = 'lines'
+        ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Scatter(
+            x = df.index,
+            y = df.stoploss,
+            line = dict(color = '#F78502', width = 1),
+            name = 'StopLoss',
             showlegend = True,
             mode = 'lines'
         ), row = 1, col = 1
