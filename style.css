@@ -1,13 +1,13 @@
 /* #MainMenu { visibility: hidden; } */
 footer  { visibility: hidden; }
 
-.appview-container .main .block-container { margin-top: -60px; }
+.appview-container .main .block-container { margin-top: -90px; }
 
 @media (min-width: 990px) {
 /* @media (max-width: 320px) { */
 .appview-container [data-testid = 'stSidebar'] .block-container {
     margin-top: -50px;
-    width: 360px;
+    width: 364px;
     }
 }
 

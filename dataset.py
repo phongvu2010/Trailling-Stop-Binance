@@ -7,11 +7,11 @@ from os import path
 
 client = Client(st.secrets['binance']['api_key'], st.secrets['binance']['api_secret'])
 
-@st.cache_data(ttl = 120)    # Cache data for 2 minute
+@st.cache_data(ttl = 120, show_spinner = False)    # Cache data for 2 minute
 def getPrices():
     return pd.DataFrame(client.get_all_tickers())
 
-@st.cache_data(ttl = 300)    # Cache data for 5 minute
+@st.cache_data(ttl = 300, show_spinner = False)    # Cache data for 5 minute
 def getKlines(symbol, interval = Client.KLINE_INTERVAL_5MINUTE):
     df = pd.DataFrame(client.get_klines(symbol = symbol.upper(), interval = interval, limit = 1000))
     df = df[df.columns[0:6]]
@@ -29,21 +29,3 @@ def getKlines(symbol, interval = Client.KLINE_INTERVAL_5MINUTE):
     df.to_feather(path_file)
 
     return df.set_index('time').sort_index()
-
-# df = getPrices()
-# df = getKlines('btcusdt')
-# print(df.dtypes)
-# print(df)
-
-# Open time
-# Open
-# High
-# Low
-# Close
-# Volume
-# Close time
-# Quote asset volume
-# Number of trades
-# Taker buy base asset volume
-# Taker buy quote asset volume
-# Ignore
