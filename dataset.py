@@ -5,7 +5,8 @@ from binance.client import Client
 from datetime import datetime
 from os import path
 
-client = Client(st.secrets['binance']['api_key'], st.secrets['binance']['api_secret'])
+# client = Client(st.secrets['binance']['api_key'], st.secrets['binance']['api_secret'])
+client = Client()
 
 @st.cache_data(ttl = 120, show_spinner = False)    # Cache data for 2 minute
 def getPrices():
