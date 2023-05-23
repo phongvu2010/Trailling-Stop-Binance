@@ -210,11 +210,11 @@ with st.container():
     fig.update_layout(
         go.Layout(
             autosize = True,
-            margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 30, pad = 8),
+            margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 10, pad = 10),
             xaxis_rangeslider_visible = False,
-            legend = dict(orientation = 'h', yanchor = 'top', y = 1.03, xanchor = 'left', x = 0)
+            legend = dict(orientation = 'h', yanchor = 'top', y = 1.1, xanchor = 'left', x = 0)
         )
     )
     st.plotly_chart(fig, use_container_width = True)
 
-    st.dataframe(df, use_container_width = True)
+    # st.dataframe(df, use_container_width = True)
