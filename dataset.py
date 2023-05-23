@@ -15,7 +15,7 @@ def getPrices():
     # data = requests.get(endpoint).json()
 
     # return pd.DataFrame(data).set_index('symbol').astype('float')
-    return pd.DataFrame(client.get_all_tickers())
+    return pd.DataFrame(client.get_all_tickers()).set_index('symbol').astype('float')
 
 @st.cache_data(ttl = 300, show_spinner = False)    # Cache data for 5 minute
 # def getKlines(symbol, tick_interval = '5m'):

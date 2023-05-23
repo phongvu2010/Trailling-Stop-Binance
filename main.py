@@ -7,6 +7,7 @@ from datetime import datetime
 from os import path
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
+from streamlit_autorefresh import st_autorefresh
 
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
@@ -17,6 +18,9 @@ st.set_page_config(page_title = st.secrets['page_title'],
 # Inject CSS with Markdown
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
+
+# Run the autorefresh about every 300000 milliseconds (300 seconds) and stop after it's been refreshed 100 times.
+st_autorefresh(interval = 300000, limit = 100, key = 'refreshpage')
 
 prices = getPrices()
 
@@ -130,6 +134,8 @@ if submitted:
 
 with st.container():
     st.title('Trailling Stop on Binance')
+
+    st.write(datetime.now())
 
     symbol_order = st.selectbox('Symbol', df_order['symbol'].to_list(), label_visibility = 'collapsed')
 
