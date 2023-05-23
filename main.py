@@ -30,7 +30,6 @@ if path.exists(path_order_file):
     df_order = pd.read_csv(path_order_file)
     df_order['time_order'] = pd.to_datetime(df_order['time_order'])
 
-@st.cache_data(ttl = 300, show_spinner = False)
 def getKlinesOrdered(symbol, order):
     data = getKlines(symbol)
     order.set_index('time_order', inplace = True)
@@ -57,6 +56,7 @@ def getKlinesOrdered(symbol, order):
     limited = df.dropna(subset = ['limited'])
 
     df = pd.concat([df[df['limited'].isna()], limited.head(1)])
+    df['stoploss'] = np.nan
 
     df_ = df.copy().dropna(subset = ['actived'])
     for i in df_.index:
@@ -99,12 +99,12 @@ with st.sidebar:
     columns = st.columns(2)
     with columns[0]:
         price = prices.at[symbol, 'price']
-        act_price = st.number_input('Act Price', price, step = 0.00000001, format = '%.8f')
+        act_price = st.number_input('Act Price', value = price, step = 0.00000001, format = '%.8f')
 
     with columns[1]:
-        if type_order == 'Buy': limit = act_price * 0.95
-        else: limit = act_price * 1.05
-        limit_price = st.number_input('Limit Price', limit, step = 0.00000001, format = '%.8f')
+        if type_order == 'Buy': limit = act_price * 0.98
+        else: limit = act_price * 1.02
+        limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
 
     detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
 
@@ -140,7 +140,7 @@ with st.container():
         st.write(order.to_dict('records'))
 
     freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
-    period = st.radio('Period', freqs, index = 3, horizontal = True, label_visibility = 'collapsed')
+    period = st.radio('Period', freqs, index = 1, horizontal = True, label_visibility = 'collapsed')
 
     df = getKlinesOrdered(symbol_order, order).reset_index()
     df = df.resample(period, on = 'index').agg({
@@ -217,4 +217,4 @@ with st.container():
     )
     st.plotly_chart(fig, use_container_width = True)
 
-    # st.dataframe(df, use_container_width = True)
+    st.dataframe(df, use_container_width = True)
