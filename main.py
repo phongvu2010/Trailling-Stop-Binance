@@ -18,7 +18,7 @@ st.set_page_config(page_title = st.secrets['page_title'],
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-prices = getPrices().set_index('symbol').astype('float')
+prices = getPrices()
 
 path_order_file = 'data/Orders.csv'
 df_order = pd.DataFrame()
@@ -38,9 +38,9 @@ def getKlinesOrdered(symbol, order):
     df = df[['symbol', 'type', 'open', 'high', 'low', 'close',
              'volume', 'act_price', 'limit_price', 'delta']]
 
-    df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
-                    'close': 'float', 'volume': 'float', 'act_price': 'float',
-                    'limit_price': 'float', 'delta': 'float'})
+    # df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
+    #                 'close': 'float', 'volume': 'float', 'act_price': 'float',
+    #                 'limit_price': 'float', 'delta': 'float'})
 
     df['actived'] = np.where(df['type'] == 'Buy',
                              np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
