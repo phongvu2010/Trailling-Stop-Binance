@@ -28,6 +28,7 @@ path_order_file = 'data/Orders.csv'
 df_order = pd.DataFrame()
 if path.exists(path_order_file):
     df_order = pd.read_csv(path_order_file)
+    df_order['time_order'] = pd.to_datetime(df_order['time_order'])
 
 @st.cache_data(ttl = 300, show_spinner = False)
 def getKlinesOrdered(symbol, order):
@@ -41,10 +42,6 @@ def getKlinesOrdered(symbol, order):
     df.dropna(inplace = True)
     df = df[['symbol', 'type', 'open', 'high', 'low', 'close',
              'volume', 'act_price', 'limit_price', 'delta']]
-
-    # df = df.astype({'open': 'float', 'high': 'float', 'low': 'float',
-    #                 'close': 'float', 'volume': 'float', 'act_price': 'float',
-    #                 'limit_price': 'float', 'delta': 'float'})
 
     df['actived'] = np.where(df['type'] == 'Buy',
                              np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
@@ -85,36 +82,35 @@ def getKlinesOrdered(symbol, order):
     return df
 
 with st.sidebar:
-    # with st.expander('Add Order', expanded = True):
-        columns = st.columns(2)
-        with columns[0]:
-            symbol = st.selectbox('Symbol', prices.index.to_list())
+    columns = st.columns(2)
+    with columns[0]:
+        symbol = st.selectbox('Symbol', prices.index.to_list())
 
-        with columns[1]:
-            type_order = st.selectbox('Type', ('Buy', 'Sell'))
+    with columns[1]:
+        type_order = st.selectbox('Type', ('Buy', 'Sell'))
 
-        columns = st.columns(2)
-        with columns[0]:
-            date_order = st.date_input('Date Order')
+    columns = st.columns(2)
+    with columns[0]:
+        date_order = st.date_input('Date Order')
 
-        with columns[1]:
-            time_order = st.time_input('Time Order')
+    with columns[1]:
+        time_order = st.time_input('Time Order')
 
-        columns = st.columns(2)
-        with columns[0]:
-            price = prices.at[symbol, 'price']
-            act_price = st.number_input('Act Price', price, step = 0.00000001, format = '%.8f')
+    columns = st.columns(2)
+    with columns[0]:
+        price = prices.at[symbol, 'price']
+        act_price = st.number_input('Act Price', price, step = 0.00000001, format = '%.8f')
 
-        with columns[1]:
-            if type_order == 'Buy': limit = act_price * 0.95
-            else: limit = act_price * 1.05
-            limit_price = st.number_input('Limit Price', limit, step = 0.00000001, format = '%.8f')
+    with columns[1]:
+        if type_order == 'Buy': limit = act_price * 0.95
+        else: limit = act_price * 1.05
+        limit_price = st.number_input('Limit Price', limit, step = 0.00000001, format = '%.8f')
 
-        detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
+    detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
 
-        # Every form must have a submit button.
-        with st.form('order_trailling_stop', clear_on_submit = True):
-            submitted = st.form_submit_button('Add Order', type = 'primary', use_container_width = True)
+    # Every form must have a submit button.
+    with st.form('order_trailling_stop', clear_on_submit = True):
+        submitted = st.form_submit_button('Add Order', type = 'primary', use_container_width = True)
 
 if submitted:
     add_order = {
@@ -157,9 +153,6 @@ with st.container():
         'limit_price': 'last',
         'stoploss': 'last'
         })
-
-    # data = getKlines(symbol)
-    # df = pd.concat([df, data])
 
     fig = make_subplots(rows = 1, cols = 1)
     fig.append_trace(
