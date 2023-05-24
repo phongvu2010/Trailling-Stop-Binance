@@ -27,7 +27,7 @@ def init_connection():
 
 client = init_connection()
 
-@st.cache_data(ttl = 60)
+@st.cache_data(ttl = 600)
 def get_data():
     db = client.get_database('Binance')  # establish connection to the 'sample_guide' db
     col = db.get_collection('Klines')
