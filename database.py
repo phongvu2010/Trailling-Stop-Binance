@@ -1,6 +1,10 @@
 import streamlit as st
 import pymongo
 
+# URL = 'mongodb+srv://phongvu2010:<password>@cluster0.i4ao1my.mongodb.net/?retryWrites=true&w=majority'
+URL = f'mongodb+srv://phongvu2010:85GGS4qxioSsi4MH@cluster0.i4ao1my.mongodb.net/'
+# ac-ynvala9-shard-00-02.i4ao1my.mongodb.net
+
 # Initialize connection.
 # Uses st.cache_resource to only run once.
 @st.cache_resource
