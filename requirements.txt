@@ -21,6 +21,7 @@
 
 # binance-connector
 plotly
+pymongo
 python-binance
 streamlit
 streamlit-autorefresh
