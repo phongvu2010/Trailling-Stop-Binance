@@ -48,6 +48,9 @@ def get_data():
 
 # db = client.get_database('Binance')  # establish connection to the 'sample_guide' db
 # col = db.get_collection('Klines')
-# col.insert_many(li)
-# col.insert_one(di)
+# x = col.insert_many(li)
+# print(x.inserted_ids)
+
+# x = col.insert_one(di)
+# print(x.inserted_id)
 # mycol.insert_one(mydict)
