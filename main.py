@@ -137,7 +137,7 @@ with st.container():
 
     with st.expander('Ordered Detail', expanded = False):
         order = df_order[df_order['symbol'] == symbol_order]
-        st.write(order.to_dict('records'))
+        st.write(order.to_dict('records')[0])
 
     freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
     period = st.radio('Period', freqs, index = 1, horizontal = True, label_visibility = 'collapsed')
