@@ -13,8 +13,8 @@ from os import path
 def getPrices():
     endpoint = 'https://api.binance.com/api/v3/ticker/price'
     data = requests.get(endpoint).json()
-
-    return pd.DataFrame(data).set_index('symbol').astype('float')
+    df = pd.DataFrame(data).set_index('symbol')
+    return df.astype('float')
     # return pd.DataFrame(client.get_all_tickers()).set_index('symbol').astype('float')
 
 @st.cache_data(ttl = 300, show_spinner = False)    # Cache data for 5 minute
