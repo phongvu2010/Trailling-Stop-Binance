@@ -1,3 +1,5 @@
+# https://medium.com/@chris_42047/real-time-price-updates-from-binance-exchange-using-web-sockets-python-cd8374c50fcd
+# https://dev.to/ken_mwaura1/crypto-data-bot-using-python-binance-websockets-and-postgresql-db-5fnd
 import pandas as pd
 import streamlit as st
 import time  # to simulate a real time data, time loop
