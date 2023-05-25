@@ -27,4 +27,4 @@ streamlit
 streamlit-autorefresh
 # streamlit-lightweight-charts
 watchdog
-# websocket-client
+websocket-client

@@ -1,31 +1,55 @@
+import certifi
 import streamlit as st
-import pymongo
 
-# URL = 'mongodb+srv://phongvu2010:<password>@cluster0.i4ao1my.mongodb.net/?retryWrites=true&w=majority'
-URL = f'mongodb+srv://phongvu2010:85GGS4qxioSsi4MH@cluster0.i4ao1my.mongodb.net/'
-# ac-ynvala9-shard-00-02.i4ao1my.mongodb.net
+from pymongo import MongoClient, change_stream
+from urllib import parse
+
 
 # Initialize connection.
 # Uses st.cache_resource to only run once.
-@st.cache_resource
+@st.cache_resource()
 def init_connection():
-    return pymongo.MongoClient(**st.secrets['mongo'])
+    env = st.secrets['mongo']
+    db_host = env['db_host']
+    db_user = parse.quote_plus(env['db_user'])
+    db_pswd = parse.quote_plus(env['db_pswd'])
+    cluster = env['cluster']
 
-client = init_connection()
+    URL = f'mongodb+srv://{ db_user }:{ db_pswd }@{ cluster }.{ db_host }/?retryWrites=true&w=majority'
+
+    return MongoClient(URL, tlsCAFile = certifi.where())
 
 # Pull data from the collection.
 # Uses st.cache_data to only rerun when the query changes or after 10 min.
-@st.cache_data(ttl = 600)
-def get_data():
-    db = client.mydb
-    items = db.mycollection.find()
-    items = list(items)  # make hashable for st.cache_data
-    return items
+@st.cache_data(ttl = 600, show_spinner = False)
+def get_data(database, collection):
+    client = init_connection()
+    db = client.get_database(database)
+    coll = db.get_collection(collection)
 
-items = get_data()
+    return list(coll.find())
 
+client = init_connection()
+change_stream = change_stream.CollectionChangeStream()
+print(change_stream)
+
+# items = get_data('Binance', 'Klines')
+# print(items)
 # Print results.
-for item in items:
-    st.write(f"{item['name']} has a :{item['pet']}:")
+# for item in items:
+#     st.write(f"{item['name']} has a :{item['pet']}:")
 
-db.mycollection.insertMany([{"name" : "Mary", "pet": "dog"}, {"name" : "John", "pet": "cat"}, {"name" : "Robert", "pet": "bird"}])
+# li = [{"name" : "Mary", "pet": "dog"},
+#       {"name" : "John", "pet": "cat"},
+#       {"name" : "Robert", "pet": "bird"}]
+
+# di = {"name" : "Hunter", "full": "Do"}
+
+# db = client.get_database('Binance')  # establish connection to the 'sample_guide' db
+# col = db.get_collection('Klines')
+# x = col.insert_many(li)
+# print(x.inserted_ids)
+
+# x = col.insert_one(di)
+# print(x.inserted_id)
+# mycol.insert_one(mydict)
