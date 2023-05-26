@@ -21,10 +21,10 @@
 
 # binance-connector
 plotly
-pymongo
+# pymongo
 python-binance
 streamlit
 streamlit-autorefresh
 # streamlit-lightweight-charts
 watchdog
-websocket-client
+# websocket-client
