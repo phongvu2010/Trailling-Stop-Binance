@@ -1,5 +1,7 @@
 /.DS_Store
 /.venv
 /__pycache__
+/temp
 
-/.streamlit/secrets.toml
+.streamlit/secrets.toml
+test.ipynb
