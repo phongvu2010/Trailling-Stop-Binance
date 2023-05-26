@@ -11,7 +11,8 @@ from streamlit_autorefresh import st_autorefresh
 
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
-st.set_page_config(page_title = st.secrets['page_title'],
+# st.set_page_config(page_title = st.secrets['page_title'],
+st.set_page_config(page_title = 'Trailling Stop Binance',
                    page_icon = '✅', layout = 'centered',
                    initial_sidebar_state = 'auto')
 
