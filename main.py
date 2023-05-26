@@ -11,28 +11,23 @@ from streamlit_autorefresh import st_autorefresh
 
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
-# st.set_page_config(page_title = st.secrets['page_title'],
 st.set_page_config(page_title = 'Trailling Stop Binance',
                    page_icon = '✅', layout = 'centered',
-                   initial_sidebar_state = 'auto')
+                   initial_sidebar_state = 'collapsed')
 
 # Inject CSS with Markdown
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-# Run the autorefresh about every 300000 milliseconds (300 seconds) and stop after it's been refreshed 100 times.
-st_autorefresh(interval = 300000, limit = 100, key = 'refreshpage')
-
 prices = getPrices()
 
 path_order_file = 'data/Orders.csv'
-df_order = pd.DataFrame()
 if path.exists(path_order_file):
     df_order = pd.read_csv(path_order_file)
     df_order['time_order'] = pd.to_datetime(df_order['time_order'])
+else: df_order = pd.DataFrame()
 
-def getKlinesOrdered(symbol, order):
-    data = getKlines(symbol)
+def getKlinesOrdered(data, order):
     order.set_index('time_order', inplace = True)
 
     df = data.join(order, how = 'outer')
@@ -40,8 +35,8 @@ def getKlinesOrdered(symbol, order):
     df.sort_index(inplace = True)
     df.ffill(inplace = True)
     df.dropna(inplace = True)
-    df = df[['symbol', 'type', 'open', 'high', 'low', 'close',
-             'volume', 'act_price', 'limit_price', 'delta']]
+    # df = df[['symbol', 'type', 'open', 'high', 'low', 'close',
+    #          'volume', 'act_price', 'limit_price', 'delta']]
 
     df['actived'] = np.where(df['type'] == 'Buy',
                              np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
@@ -57,8 +52,8 @@ def getKlinesOrdered(symbol, order):
     limited = df.dropna(subset = ['limited'])
 
     df = pd.concat([df[df['limited'].isna()], limited.head(1)])
-    df['stoploss'] = np.nan
 
+    df['stoploss'] = np.nan
     df_ = df.copy().dropna(subset = ['actived'])
     for i in df_.index:
         a = df_.loc[:i, ['high', 'low', 'close', 'type', 'delta']]
@@ -80,7 +75,11 @@ def getKlinesOrdered(symbol, order):
 
     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
 
-    return df
+    return df[['act_price', 'limit_price', 'delta', 'actived', 'limited', 'stoploss', 'cuttedloss']]
+
+# Run the autorefresh about every 300000 milliseconds (300 seconds)
+# and stop after it's been refreshed 100 times.
+st_autorefresh(interval = 300000, limit = 100, key = 'refresh_page')
 
 with st.sidebar:
     columns = st.columns(2)
@@ -103,8 +102,8 @@ with st.sidebar:
         act_price = st.number_input('Act Price', value = price, step = 0.00000001, format = '%.8f')
 
     with columns[1]:
-        if type_order == 'Buy': limit = act_price * 0.98
-        else: limit = act_price * 1.02
+        if type_order == 'Buy': limit = act_price * 0.99
+        else: limit = act_price * 1.01
         limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
 
     detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
@@ -141,9 +140,12 @@ with st.container():
         st.write(order.to_dict('records')[0])
 
     freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
-    period = st.radio('Period', freqs, index = 1, horizontal = True, label_visibility = 'collapsed')
+    period = st.radio('Period', freqs, index = 0, horizontal = True, label_visibility = 'collapsed')
 
-    df = getKlinesOrdered(symbol_order, order).reset_index()
+    data = getKlines(symbol_order)
+    df = getKlinesOrdered(data, order)
+    df = data.join(df, how = 'outer').reset_index()
+
     df = df.resample(period, on = 'index').agg({
         'open': 'first',
         'high': 'max',

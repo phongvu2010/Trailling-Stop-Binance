@@ -19,7 +19,6 @@
 
 # pip3 freeze > requirements.txt
 
-# binance-connector
 plotly
 # pymongo
 python-binance
