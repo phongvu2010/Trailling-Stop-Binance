@@ -102,8 +102,8 @@ with st.sidebar:
         act_price = st.number_input('Act Price', value = price, step = 0.00000001, format = '%.8f')
 
     with columns[1]:
-        if type_order == 'Buy': limit = act_price * 0.99
-        else: limit = act_price * 1.01
+        if type_order == 'Buy': limit = act_price * 0.995
+        else: limit = act_price * 1.005
         limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
 
     detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
