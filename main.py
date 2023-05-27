@@ -160,13 +160,24 @@ with st.container():
         'high': 'max',
         'low': 'min',
         'close': 'last',
+        'volume': 'sum',
         'act_price': 'last',
         'actived': 'last',
         'limit_price': 'last',
         'stoploss': 'last'
         })
 
-    fig = make_subplots(rows = 1, cols = 1)
+    colors = []
+    for i in range(len(df.close)):
+        if i != 0:
+            if df.close[i] > df.close[i - 1]:
+                colors.append('green')
+            else:
+                colors.append('red')
+        else:
+            colors.append('red')
+
+    fig = make_subplots(rows = 2, cols = 1, row_heights = [80, 20], shared_xaxes = True, vertical_spacing = 0)
     fig.append_trace(
         go.Candlestick(
             x = df.index,
@@ -178,6 +189,16 @@ with st.container():
             decreasing_line_color = 'red',
             showlegend = False
         ), row = 1, col = 1
+    )
+    fig.append_trace(
+        go.Bar(
+            x = df.index,
+            y = df.volume,
+            marker = dict(
+                color = colors
+            ),
+            showlegend = False
+        ), row = 2, col = 1
     )
     fig.append_trace(
         go.Scatter(
@@ -221,10 +242,15 @@ with st.container():
     )
     fig.update_layout(
         go.Layout(
-            autosize = True,
-            margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 10, pad = 10),
+            autosize = True, height = 500,
+            margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 10, pad = 5),
             xaxis_rangeslider_visible = False,
-            legend = dict(orientation = 'h', yanchor = 'top', y = 1.1, xanchor = 'left', x = 0)
+            legend = dict(
+                orientation = 'h',
+                x = 0, y = 0.98,
+                xanchor = 'left',
+                yanchor = 'top'
+            )
         )
     )
     st.plotly_chart(fig, use_container_width = True)
