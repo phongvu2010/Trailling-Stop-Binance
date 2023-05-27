@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
+import pytz
 
 from dataset import getPrices, getKlines
 from datetime import datetime
@@ -132,7 +133,8 @@ if submitted:
 with st.container():
     st.title('Trailling Stop on Binance')
 
-    st.write(datetime.now())
+    timezone = pytz.timezone('Asia/Ho_Chi_Minh')
+    st.write(timezone.localize(datetime.now()))
 
     symbol_order = st.selectbox('Symbol', df_order['symbol'].to_list(), label_visibility = 'collapsed')
 
