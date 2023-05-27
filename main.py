@@ -27,6 +27,7 @@ if path.exists(path_order_file):
     df_order['time_order'] = pd.to_datetime(df_order['time_order'])
 else: df_order = pd.DataFrame()
 
+@st.cache_data(ttl = 300, show_spinner = False)
 def getKlinesOrdered(data, order):
     order.set_index('time_order', inplace = True)
 
@@ -35,8 +36,6 @@ def getKlinesOrdered(data, order):
     df.sort_index(inplace = True)
     df.ffill(inplace = True)
     df.dropna(inplace = True)
-    # df = df[['symbol', 'type', 'open', 'high', 'low', 'close',
-    #          'volume', 'act_price', 'limit_price', 'delta']]
 
     df['actived'] = np.where(df['type'] == 'Buy',
                              np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
@@ -139,12 +138,18 @@ with st.container():
         order = df_order[df_order['symbol'] == symbol_order]
         st.write(order.to_dict('records')[0])
 
-    freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
-    period = st.radio('Period', freqs, index = 0, horizontal = True, label_visibility = 'collapsed')
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
+        period = st.radio('Period', freqs, index = 0, horizontal = True, label_visibility = 'visible')
+    with col2:
+        selected_ordered = st.radio('By Order', (False, True), horizontal = True, label_visibility = 'visible')
 
     data = getKlines(symbol_order)
     df = getKlinesOrdered(data, order)
     df = data.join(df, how = 'outer').reset_index()
+    if selected_ordered:
+        df.dropna(subset = ['act_price'], inplace = True)
 
     df = df.resample(period, on = 'index').agg({
         'open': 'first',
