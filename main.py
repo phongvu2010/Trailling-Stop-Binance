@@ -245,6 +245,7 @@ with st.container():
             autosize = True, height = 500,
             margin = go.layout.Margin(l = 5, r = 5, b = 5, t = 10, pad = 5),
             xaxis_rangeslider_visible = False,
+            yaxis_autorange = True,
             legend = dict(
                 orientation = 'h',
                 x = 0, y = 0.98,
