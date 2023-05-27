@@ -95,14 +95,16 @@ with st.sidebar:
     with columns[1]:
         time_order = st.time_input('Time Order')
 
+    limit_detail = st.slider('Limit Delta', value = 0.01, min_value = 0.01, max_value = 0.1)
+
     columns = st.columns(2)
     with columns[0]:
         price = prices.at[symbol, 'price']
         act_price = st.number_input('Act Price', value = price, step = 0.00000001, format = '%.8f')
 
     with columns[1]:
-        if type_order == 'Buy': limit = act_price * 0.995
-        else: limit = act_price * 1.005
+        if type_order == 'Buy': limit = act_price * (1 - limit_detail)
+        else: limit = act_price * (1 + limit_detail)
         limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
 
     detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
