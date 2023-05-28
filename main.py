@@ -134,7 +134,7 @@ with st.container():
     st.title('Trailling Stop on Binance')
 
     timezone = pytz.timezone('Asia/Ho_Chi_Minh')
-    st.write(timezone.localize(datetime.now()))
+    st.write(datetime.now(timezone))
 
     symbol_order = st.selectbox('Symbol', df_order['symbol'].to_list(), label_visibility = 'collapsed')
 
