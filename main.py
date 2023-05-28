@@ -81,6 +81,8 @@ def getKlinesOrdered(data, order):
 # and stop after it's been refreshed 100 times.
 st_autorefresh(interval = 300000, limit = 100, key = 'refresh_page')
 
+timezone = pytz.timezone('Asia/Ho_Chi_Minh')
+
 with st.sidebar:
     columns = st.columns(2)
     with columns[0]:
@@ -91,10 +93,10 @@ with st.sidebar:
 
     columns = st.columns(2)
     with columns[0]:
-        date_order = st.date_input('Date Order')
+        date_order = st.date_input('Date Order', datetime.now(timezone))
 
     with columns[1]:
-        time_order = st.time_input('Time Order')
+        time_order = st.time_input('Time Order', datetime.now(timezone))
 
     limit_detail = st.slider('Limit Delta', value = 0.01, min_value = 0.01, max_value = 0.1)
 
@@ -133,7 +135,6 @@ if submitted:
 with st.container():
     st.title('Trailling Stop on Binance')
 
-    timezone = pytz.timezone('Asia/Ho_Chi_Minh')
     st.write(datetime.now(timezone))
 
     symbol_order = st.selectbox('Symbol', df_order['symbol'].to_list(), label_visibility = 'collapsed')
