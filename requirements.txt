@@ -33,5 +33,6 @@ python-binance
 
 
 python-dotenv
+psycopg2-binary
 sqlalchemy
 websocket-client
