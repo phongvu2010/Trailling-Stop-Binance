@@ -1,23 +1,16 @@
-from binance.streams import ThreadedWebsocketManager
+from binance import ThreadedWebsocketManager
 
-symbol = 'BNBBTC'
-
+# socket manager using threads
 twm = ThreadedWebsocketManager()
-# Start is required to initialise its internal loop
 twm.start()
 
 def handle_socket_message(msg):
-    print(f"Message type: { msg['e'] }")
+    print(f"message type: {msg['e']}")
     print(msg)
 
-twm.start_kline_socket(callback=handle_socket_message, symbol=symbol)
+twm.start_kline_socket(callback=handle_socket_message, symbol='BNBBTC')
 
-# # Multiple sockets can be started
-# twm.start_depth_socket(callback=handle_socket_message, symbol=symbol)
-
-# # or a multiplex socket can be started like this
-# # see Binance docs for stream names
-# streams = ['bnbbtc@miniTicker', 'bnbbtc@bookTicker']
-# twm.start_multiplex_socket(callback=handle_socket_message, streams=streams)
-
+# replace with a current options symbol
+options_symbol = 'BTC-210430-36000-C'
+# join the threaded managers to the main thread
 twm.join()
