@@ -1,16 +1,7 @@
-from binance import ThreadedWebsocketManager
+from datetime import datetime
 
-# socket manager using threads
-twm = ThreadedWebsocketManager()
-twm.start()
+str_time = 123400000
 
-def handle_socket_message(msg):
-    print(f"message type: {msg['e']}")
-    print(msg)
+a = datetime.fromtimestamp(str_time / 1000)
 
-twm.start_kline_socket(callback=handle_socket_message, symbol='BNBBTC')
-
-# replace with a current options symbol
-options_symbol = 'BTC-210430-36000-C'
-# join the threaded managers to the main thread
-twm.join()
+print(a)
