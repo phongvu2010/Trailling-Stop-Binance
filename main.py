@@ -1,5 +1,3 @@
-# https://dev.to/ken_mwaura1/crypto-data-bot-using-python-binance-websockets-and-postgresql-db-5fnd
-
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -12,15 +10,15 @@ from plotly import graph_objs as go
 from plotly.subplots import make_subplots
 from streamlit_autorefresh import st_autorefresh
 
-# Basic Page Configuration
-# Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
-st.set_page_config(page_title = 'Trailling Stop Binance',
-                   page_icon = '✅', layout = 'centered',
-                   initial_sidebar_state = 'collapsed')
+# # Basic Page Configuration
+# # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
+# st.set_page_config(page_title = 'Trailling Stop Binance',
+#                    page_icon = '✅', layout = 'centered',
+#                    initial_sidebar_state = 'collapsed')
 
-# Inject CSS with Markdown
-with open('style.css') as f:
-    st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
+# # Inject CSS with Markdown
+# with open('style.css') as f:
+#     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
 prices = getPrices()
 

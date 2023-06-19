@@ -23,7 +23,7 @@
 plotly
 psycopg2-binary
 # pymongo
-# python-binance
+python-binance
 python-dotenv
 sqlalchemy
 streamlit
@@ -31,5 +31,3 @@ streamlit
 # streamlit-lightweight-charts
 watchdog
 websocket-client
-
-

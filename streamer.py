@@ -1,3 +1,5 @@
+# https://dev.to/ken_mwaura1/crypto-data-bot-using-python-binance-websockets-and-postgresql-db-5fnd
+
 import json
 import pandas as pd
 import streamlit as st
