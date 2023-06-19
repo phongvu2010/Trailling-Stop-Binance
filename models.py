@@ -1,12 +1,11 @@
 from base_sql import Base
-from sqlalchemy import DateTime, Column, Integer, String, Float
+from sqlalchemy import DateTime, Column, String, Float
 
 class CryptoPrice(Base):
     __tablename__ = 'price_data'
 
-    id = Column(Integer, primary_key = True)
-    start_time = Column(DateTime())
-    symbol = Column(String(20))
+    start_time = Column(DateTime(), primary_key = True)
+    symbol = Column(String(20), primary_key = True)
     open = Column(Float())
     high = Column(Float())
     low = Column(Float())
