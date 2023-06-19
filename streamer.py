@@ -1,22 +1,22 @@
-import websocket
 import json
-import streamlit as st
-# import plotly.express as px
 import pandas as pd
-import time
+import streamlit as st
+import websocket
 
-from base_sql import Session, create_table
 from datetime import datetime
-from threading import Thread, Lock
-from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
-from plotly.subplots import make_subplots
-from plotly import graph_objs as go
-
 from models import CryptoPrice
-from pprint import pprint
+from plotly import graph_objs as go
+from plotly.subplots import make_subplots
+# from pprint import pprint
+from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
+from threading import Thread, Lock
 
 def on_close(ws, close_status_code, close_msg):
-    print('LOG', 'Closed orderbook client')
+    print('LOG:', close_status_code)
+    print(close_msg)
+
+def on_error(ws, error):
+    print('ERROR:', error)
 
 def update(df, placeholder, lock):
     lock.acquire()
@@ -24,13 +24,6 @@ def update(df, placeholder, lock):
     with placeholder.container():
         with st.container():
             fig = make_subplots(rows = 1, cols = 1)
-            # fig.append_trace(
-            #     go.Bar(
-            #         x = df.index,
-            #         y = df.Quantity,
-            #         showlegend = False
-            #     ), row = 1, col = 1
-            # )
             fig.append_trace(
                 go.Candlestick(
                     x = df.index,
@@ -57,7 +50,7 @@ def update(df, placeholder, lock):
 
     lock.release()
 
-class Kline():        
+class Kline():
     def __init__(self, session, symbol, placeholder, interval = '5m', df = None):
         self.session = session
         self.symbol = symbol
@@ -67,49 +60,46 @@ class Kline():
         self.lock = Lock()
 
         self.url = 'wss://stream.binance.com:9443/ws'
-        # self.stream = f'{self.symbol.lower()}@aggTrade'
         self.stream = f'{self.symbol.lower()}@kline_{self.interval}'
 
-        self.times = []
-
-    def on_error(self, ws, error):
-        print(self.times)
-        print('ERROR', error)
-
     def on_open(self, ws):
-        print('LOG', f'Opening WebSocket stream for {self.symbol}')
+        print('LOG:', f'Opening WebSocket stream for {self.symbol}')
 
-        subscribe_message = {'method': 'SUBSCRIBE',
-                             'params': [self.stream],
-                             'id': 1}
-
+        subscribe_message = {'method': 'SUBSCRIBE', 'params': [self.stream], 'id': 1}
         ws.send(json.dumps(subscribe_message))
 
     def handle_message(self, candle):
         self.lock.acquire()
 
         timestamp = datetime.fromtimestamp(int(candle['t']) / 1000)
+        symbol = candle['s']
+        open_price = float(candle['o'])
+        high_price = float(candle['h'])
+        low_price = float(candle['l'])
+        close_price = float(candle['c'])
+        volume = float(candle['v'])
+
         if isinstance(self.df, pd.DataFrame):
             if timestamp not in self.df.index:
-                self.df.loc[timestamp] = [candle['o'], candle['h'], candle['l'], candle['c'], candle['v']]
+                self.df.loc[timestamp] = [open_price, high_price, low_price, close_price, volume]
             else:
-                self.df.loc[self.df.index == timestamp, 'open'] = candle['o']
-                self.df.loc[self.df.index == timestamp, 'high'] = candle['h']
-                self.df.loc[self.df.index == timestamp, 'low'] = candle['l']
-                self.df.loc[self.df.index == timestamp, 'close'] = candle['c']
-                self.df.loc[self.df.index == timestamp, 'volume'] = candle['v']
+                self.df.loc[self.df.index == timestamp, 'open'] = open_price
+                self.df.loc[self.df.index == timestamp, 'high'] = high_price
+                self.df.loc[self.df.index == timestamp, 'low'] = low_price
+                self.df.loc[self.df.index == timestamp, 'close'] = close_price
+                self.df.loc[self.df.index == timestamp, 'volume'] = volume
 
         if candle['x']:
-            # Create price entries
-            crypto = CryptoPrice(start_time = timestamp,
-                                 symbol = candle['s'],
-                                 open = candle['o'],
-                                 high = candle['h'],
-                                 low = candle['l'],
-                                 close = candle['c'],
-                                 volume = candle['v'])
             try:
-                self.session.add(crypto)
+                # Create price entries
+                price = CryptoPrice(start_time = timestamp,
+                                    symbol = symbol,
+                                    open = open_price,
+                                    high = high_price,
+                                    low = low_price,
+                                    close = close_price,
+                                    volume = volume)
+                self.session.add(price)
                 self.session.commit()
             except Exception as e:
                 self.session.rollback()
@@ -121,65 +111,20 @@ class Kline():
 
     def on_message(self, ws, message):
         message = json.loads(message)
-        self.times.append(time.time())
-        # if 'e' in message:
-        #     self.handle_message(message)
-        #     thr = Thread(target = update,
-        #                  args = (self.df, self.placeholder, self.lock))
-        #     add_script_run_ctx(thr)
-        #     thr.start()
         if 'k' in message:
+            # pprint(message['k'])
             self.handle_message(message['k'])
-            thr = Thread(target = update,
-                         args = (self.df, self.placeholder, self.lock))
+            thr = Thread(target = update, args = (self.df, self.placeholder, self.lock))
             add_script_run_ctx(thr)
             thr.start()
-        pprint(message['k'])
 
     def run(self):
         self.ws = websocket.WebSocketApp(self.url,
                                          on_close = on_close,
-                                         on_error = self.on_error,
+                                         on_error = on_error,
                                          on_open = self.on_open,
                                          on_message = self.on_message)
         self.ws.run_forever()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # {
 #     'e': 'kline',

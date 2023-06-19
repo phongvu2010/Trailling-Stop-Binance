@@ -19,19 +19,17 @@
 
 # pip3 freeze > requirements.txt
 
+
 plotly
+psycopg2-binary
 # pymongo
-python-binance
+# python-binance
+python-dotenv
+sqlalchemy
 streamlit
-streamlit-autorefresh
+# streamlit-autorefresh
 # streamlit-lightweight-charts
 watchdog
+websocket-client
 
 
-
-
-streamlit-server-state
-# python-dotenv
-# psycopg2-binary
-# sqlalchemy
-# websocket-client
