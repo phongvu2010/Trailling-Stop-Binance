@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from models import Kline
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
@@ -42,6 +43,27 @@ def create_table():
 
 def save_klines(df):
     df.to_sql('klines_temp', engine, if_exists = 'replace', index = False)
+    # https://www.programcreek.com/python/example/105995/sqlalchemy.dialects.postgresql.insert
+    # from sqlalchemy.dialects.postgresql import insert
+    # kline_table = Kline.__tablename__
+    # ins = insert(kline_table)
+    # upsert = ins.on_conflict_do_update(constraint = kline_table.primary_key, set_ = {
+    #         'open': ins.excluded.open,
+    #         'high': ins.excluded.high,
+    #         'low': ins.excluded.low,
+    #         'close': ins.excluded.close,
+    #         'volume': ins.excluded.volume
+    # })
+    # with engine.begin() as conn:
+    #     conn.execute(upsert, [dict(
+    #         start_time = row[0],
+    #         symbol = row[1],
+    #         open = row[0],
+    #         high = row[1],
+    #         low = row[2],
+    #         close = row[3],
+    #         volume = row[4]) for row in rows])
+
     try:
         with engine.connect() as conn:
             conn.execute(text('''
