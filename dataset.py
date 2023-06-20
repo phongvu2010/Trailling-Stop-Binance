@@ -2,11 +2,9 @@ import pandas as pd
 # import requests
 import streamlit as st
 
-from base_sql import engine
+from base_sql import save_klines
 from binance.client import Client
 from datetime import datetime
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
 # from os import path
 
 client = Client()
@@ -34,23 +32,7 @@ def getKlines(symbol, tick_interval = '5m'):
     df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
 
     df = df.set_index(['start_time', 'symbol']).astype('float').sort_index().reset_index()
-
-    df.to_sql('price_data_temp', engine, if_exists = 'replace', index = False)
-    try:
-        with engine.connect() as conn:
-            conn.execute(text('''
-                INSERT INTO public.price_data (start_time, symbol, open, high, low , close, volume)
-                SELECT * FROM public.price_data_temp
-                ON CONFLICT (start_time, symbol) DO NOTHING;
-            '''))
-
-            conn.execute(text('''DROP TABLE price_data_temp;'''))
-            conn.commit()
-    except SQLAlchemyError as e:
-        conn.rollback()
-        print(str(e))
-    finally:
-        conn.close()
+    save_klines(df)
 
     # path_file = 'data/' + symbol.upper() + '.feather'
     # if path.exists(path_file):

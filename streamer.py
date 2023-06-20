@@ -5,12 +5,11 @@ import pandas as pd
 import streamlit as st
 import websocket
 
+from base_sql import save_klines
 from datetime import datetime
-from models import CryptoPrice
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
 # from pprint import pprint
-from sqlalchemy.exc import SQLAlchemyError
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
 from threading import Thread, Lock
 
@@ -49,17 +48,17 @@ def update(df, placeholder, lock):
             st.plotly_chart(fig, use_container_width = True)
 
             st.markdown('### Detailed Data View')
-            st.dataframe(df, use_container_width = True)
+            st.dataframe(df.sort_index(ascending = False), use_container_width = True)
 
     lock.release()
 
 class Kline():
-    def __init__(self, session, symbol, placeholder, interval = '5m', df = None):
+    def __init__(self, session, df, symbol, placeholder, interval = '5m'):
         self.session = session
+        self.df = df
         self.symbol = symbol
         self.placeholder = placeholder
         self.interval = interval
-        self.df = df
         self.lock = Lock()
 
         self.url = 'wss://stream.binance.com:9443/ws'
@@ -82,33 +81,25 @@ class Kline():
         close_price = float(candle['c'])
         volume = float(candle['v'])
 
-        if isinstance(self.df, pd.DataFrame):
-            if timestamp not in self.df.index:
-                self.df.loc[timestamp] = [open_price, high_price, low_price, close_price, volume]
-            else:
-                self.df.loc[self.df.index == timestamp, 'open'] = open_price
-                self.df.loc[self.df.index == timestamp, 'high'] = high_price
-                self.df.loc[self.df.index == timestamp, 'low'] = low_price
-                self.df.loc[self.df.index == timestamp, 'close'] = close_price
-                self.df.loc[self.df.index == timestamp, 'volume'] = volume
+        if timestamp not in self.df.index:
+            self.df.loc[timestamp] = [open_price, high_price, low_price, close_price, volume]
+        else:
+            self.df.loc[self.df.index == timestamp, 'open'] = open_price
+            self.df.loc[self.df.index == timestamp, 'high'] = high_price
+            self.df.loc[self.df.index == timestamp, 'low'] = low_price
+            self.df.loc[self.df.index == timestamp, 'close'] = close_price
+            self.df.loc[self.df.index == timestamp, 'volume'] = volume
 
         if candle['x']:
-            try:
-                # Create price entries
-                price = CryptoPrice(start_time = timestamp,
-                                    symbol = symbol,
-                                    open = open_price,
-                                    high = high_price,
-                                    low = low_price,
-                                    close = close_price,
-                                    volume = volume)
-                self.session.add(price)
-                self.session.commit()
-            except SQLAlchemyError as e:
-                self.session.rollback()
-                print(str(e))
-            finally:
-                self.session.close()
+            df_temp = pd.DataFrame()
+            df_temp.loc[1, 'start_time'] = timestamp
+            df_temp.loc[1, 'symbol'] = symbol
+            df_temp.loc[1, 'open'] = open_price
+            df_temp.loc[1, 'high'] = high_price
+            df_temp.loc[1, 'low'] = low_price
+            df_temp.loc[1, 'close'] = close_price
+            df_temp.loc[1, 'volume'] = volume
+            save_klines(df_temp)
 
         self.lock.release()
 

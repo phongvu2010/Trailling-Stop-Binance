@@ -19,7 +19,7 @@ session = Session()
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = 'Trailling Stop Binance',
                    page_icon = '✅', layout = 'centered',
-                   initial_sidebar_state = 'collapsed')
+                   initial_sidebar_state = 'expanded')
 
 # Inject CSS with Markdown
 with open('style.css') as f:
@@ -218,11 +218,9 @@ with st.container():
 # Creating a single-element container
 placeholder = st.empty()
 
-
 data = getKlines(symbol_order)
 # data = pd.DataFrame(columns = ['open', 'high', 'low', 'close', 'volume'])
-
-Kline(session, symbol_order, placeholder, df = data).run()
+Kline(session, data, symbol_order, placeholder).run()
 
 
 
@@ -285,7 +283,3 @@ Kline(session, symbol_order, placeholder, df = data).run()
 #     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
 
 #     return df[['act_price', 'limit_price', 'delta', 'actived', 'limited', 'stoploss', 'cuttedloss']]
-
-
-
-
