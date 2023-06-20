@@ -7,6 +7,7 @@ from binance.client import Client
 from datetime import datetime
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+# from os import path
 
 client = Client()
 
@@ -59,6 +60,3 @@ def getKlines(symbol, tick_interval = '5m'):
     # df.to_feather(path_file)
 
     return df[['start_time', 'open', 'high', 'low', 'close', 'volume']].set_index(['start_time'])
-
-df = getKlines('BNBETH')
-# print(df)
