@@ -3,7 +3,7 @@ import pytz
 import streamlit as st
 
 from base_sql import Session, create_table
-from dataset import getPrices#, getKlines
+from dataset import getPrices, getKlines
 from datetime import datetime
 from os import path
 from streamer import Kline
@@ -105,7 +105,6 @@ with st.container():
     with col2:
         selected_ordered = st.radio('By Order', (False, True), horizontal = True, label_visibility = 'visible')
 
-#     data = getKlines(symbol_order)
 
 #     df = getKlinesOrdered(data, order)
 #     df = data.join(df, how = 'outer').reset_index()
@@ -219,7 +218,9 @@ with st.container():
 # Creating a single-element container
 placeholder = st.empty()
 
-data = pd.DataFrame(columns = ['open', 'high', 'low', 'close', 'volume'])
+
+data = getKlines(symbol_order)
+# data = pd.DataFrame(columns = ['open', 'high', 'low', 'close', 'volume'])
 
 Kline(session, symbol_order, placeholder, df = data).run()
 
