@@ -2,11 +2,11 @@ import pandas as pd
 # import requests
 import streamlit as st
 
-from base_sql import engine#, Session
+from base_sql import engine
 from binance.client import Client
 from datetime import datetime
-# from models import CryptoPrice
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 client = Client()
 
@@ -17,23 +17,6 @@ def getPrices():
     data = client.get_all_tickers()
 
     return pd.DataFrame(data).set_index('symbol').astype('float')
-
-# def get_or_create(session, model, defaults = None, **kwargs):
-#     instance = session.query(model).filter_by(**kwargs).one_or_none()
-#     if instance:
-#         return instance, False
-#     else:
-#         kwargs |= defaults or {}
-#         instance = model(**kwargs)
-#         try:
-#             session.add(instance)
-#             session.commit()
-#         except Exception:  # The actual exception depends on the specific database so we catch all exceptions. This is similar to the official documentation: https://docs.sqlalchemy.org/en/latest/orm/session_transaction.html
-#             session.rollback()
-#             instance = session.query(model).filter_by(**kwargs).one()
-#             return instance, False
-#         else:
-#             return instance, True
 
 @st.cache_data(ttl = 60 * 60, show_spinner = False)
 def getKlines(symbol, tick_interval = '5m'):
@@ -49,22 +32,22 @@ def getKlines(symbol, tick_interval = '5m'):
     df['symbol'] = symbol
     df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
 
-    df = df.set_index(['start_time', 'symbol']).astype('float').sort_index()
-    df.reset_index(inplace = True)
+    df = df.set_index(['start_time', 'symbol']).astype('float').sort_index().reset_index()
 
+    df.to_sql('price_data_temp', engine, if_exists = 'replace', index = False)
     try:
-        df.to_sql('price_data_temp', engine, if_exists = 'replace', index = False)
         with engine.connect() as conn:
             conn.execute(text('''
-                INSERT INTO price_data (start_time, symbol, open, high, low , close, volume)
-                SELECT * FROM price_data_temp ON CONFLICT (start_time, symbol) DO NOTHING;
+                INSERT INTO public.price_data (start_time, symbol, open, high, low , close, volume)
+                SELECT * FROM public.price_data_temp
+                ON CONFLICT (start_time, symbol) DO NOTHING;
             '''))
 
-            conn.execute(text('''
-                DROP TABLE price_data_temp;
-            '''))
-    except Exception as e:
-        print(e)
+            conn.execute(text('''DROP TABLE price_data_temp;'''))
+            conn.commit()
+    except SQLAlchemyError as e:
+        conn.rollback()
+        print(str(e))
     finally:
         conn.close()
 
@@ -78,4 +61,4 @@ def getKlines(symbol, tick_interval = '5m'):
     return df[['start_time', 'open', 'high', 'low', 'close', 'volume']].set_index(['start_time'])
 
 df = getKlines('BNBETH')
-print(df)
+# print(df)

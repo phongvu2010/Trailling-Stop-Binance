@@ -10,6 +10,7 @@ from models import CryptoPrice
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
 # from pprint import pprint
+from sqlalchemy.exc import SQLAlchemyError
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
 from threading import Thread, Lock
 
@@ -103,9 +104,9 @@ class Kline():
                                     volume = volume)
                 self.session.add(price)
                 self.session.commit()
-            except Exception as e:
+            except SQLAlchemyError as e:
                 self.session.rollback()
-                print(e)
+                print(str(e))
             finally:
                 self.session.close()
 
