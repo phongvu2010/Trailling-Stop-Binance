@@ -5,7 +5,7 @@ import streamlit as st
 import websocket
 
 from datetime import datetime
-from insert_data import save_klines
+from base_sql import save_klines
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx

@@ -2,7 +2,7 @@ import pandas as pd
 # import requests
 import streamlit as st
 
-from insert_data import save_klines
+from base_sql import save_klines
 from binance.client import Client
 from datetime import datetime
 # from os import path

@@ -25,6 +25,10 @@ st.set_page_config(page_title = 'Trailling Stop Binance',
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
+if 'detail_slider' not in st.session_state:
+    # Set the initial default value of the slider widget
+    st.session_state.detail_slider = False
+
 path_order_file = 'data/Orders.csv'
 if path.exists(path_order_file):
     df_order = pd.read_csv(path_order_file)
@@ -65,7 +69,7 @@ with st.sidebar:
         else: limit = act_price * (1 + limit_detail)
         limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
 
-    detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0)
+    detail = st.slider('Trailing Delta', value = 0.5, min_value = 0.1, max_value = 10.0, key = 'detail_slider')
 
     # Every form must have a submit button.
     with st.form('order_trailling_stop', clear_on_submit = True):
