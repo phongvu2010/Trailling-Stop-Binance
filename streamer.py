@@ -1,15 +1,13 @@
 # https://dev.to/ken_mwaura1/crypto-data-bot-using-python-binance-websockets-and-postgresql-db-5fnd
-
 import json
 import pandas as pd
 import streamlit as st
 import websocket
 
-from base_sql import save_klines
 from datetime import datetime
+from insert_data import save_klines
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
-# from pprint import pprint
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
 from threading import Thread, Lock
 
@@ -47,7 +45,7 @@ def update(df, placeholder, lock):
             )
             st.plotly_chart(fig, use_container_width = True)
 
-            st.markdown('### Detailed Data View')
+            st.markdown('### Detailed Data View ###')
             st.dataframe(df.sort_index(ascending = False), use_container_width = True)
 
     lock.release()
@@ -106,7 +104,6 @@ class Kline():
     def on_message(self, ws, message):
         message = json.loads(message)
         if 'k' in message:
-            # pprint(message['k'])
             self.handle_message(message['k'])
             thr = Thread(target = update, args = (self.df, self.placeholder, self.lock))
             add_script_run_ctx(thr)
