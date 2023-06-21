@@ -1,7 +1,8 @@
 import os
+import pandas as pd
 
 from dotenv import load_dotenv
-from models import Kline
+from models import Kline, Order
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
@@ -26,10 +27,10 @@ Session = sessionmaker(bind = engine)
 
 Base = declarative_base()
 
-def create_table():
-    # Create a new session
-    session = Session()
+# Create a new session
+session = Session()
 
+def create_table():
     # Attempts to create the base tables and populate the db in a session.
     # In case of an issue rolls back the session
     try:
@@ -81,3 +82,21 @@ def save_klines(df):
     })
     with engine.begin() as conn:
         conn.execute(upsert, [r for r in records])
+
+def get_orders():
+    try:
+        tbl_name = Order.__tablename__
+        return pd.read_sql_table(tbl_name, engine)
+    except SQLAlchemyError as e:
+        print('Unable to select records ' + print(str(e)))
+        return None
+
+def save_orders(order):
+    try:
+        session.add(order)
+        session.commit()
+    except SQLAlchemyError as e:
+        session.rollback()
+        print(str(e))
+    finally:
+        session.close()
