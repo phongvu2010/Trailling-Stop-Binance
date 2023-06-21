@@ -1,4 +1,6 @@
 # https://dev.to/ken_mwaura1/crypto-data-bot-using-python-binance-websockets-and-postgresql-db-5fnd
+# https://discuss.streamlit.io/t/high-frequency-updates-from-websocket/36732
+
 import json
 import pandas as pd
 import streamlit as st

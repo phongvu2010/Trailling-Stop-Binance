@@ -25,9 +25,9 @@ st.set_page_config(page_title = 'Trailling Stop Binance',
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-if 'detail_slider' not in st.session_state:
-    # Set the initial default value of the slider widget
-    st.session_state.detail_slider = False
+# if 'detail_slider' not in st.session_state:
+#     # Set the initial default value of the slider widget
+#     st.session_state.detail_slider = ''
 
 path_order_file = 'data/Orders.csv'
 if path.exists(path_order_file):
