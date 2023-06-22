@@ -7,6 +7,9 @@ headless = true
 # Default: false
 runOnSave = false
 
+[runner]
+enforceSerializableSessionState = true
+
 [theme]
 # The preset Streamlit theme that your custom theme inherits from. One of "light" or "dark".
 base = 'dark'

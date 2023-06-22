@@ -18,13 +18,12 @@ st.set_page_config(page_title = 'Trailling Stop Binance',
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-# if 'detail_slider' not in st.session_state:
-#     # Set the initial default value of the slider widget
-#     st.session_state.detail_slider = ''
+state = st.session_state
+# def form_callback():
+    # state.my_slider
 
 prices = get_prices()
 df_order = get_orders()
-timezone = pytz.timezone('Asia/Ho_Chi_Minh')
 
 # Run the autorefresh about every 300000 milliseconds (300 seconds)
 # and stop after it's been refreshed 100 times.
@@ -38,6 +37,7 @@ with st.sidebar:
     with columns[1]:
         type_order = st.selectbox('Type', ('Buy', 'Sell'))
 
+    timezone = pytz.timezone('Asia/Ho_Chi_Minh')
     columns = st.columns(2)
     with columns[0]:
         date_order = st.date_input('Date Order', datetime.now(timezone))
@@ -45,7 +45,8 @@ with st.sidebar:
     with columns[1]:
         time_order = st.time_input('Time Order', datetime.now(timezone))
 
-    limit_detail = st.slider('Limit Delta', value = 0.01, min_value = 0.01, max_value = 0.1)
+    limit_detail = st.slider('Limit Delta', value = 0.01,
+                             min_value = 0.01, max_value = 0.1)
 
     columns = st.columns(2)
     with columns[0]:
@@ -58,11 +59,13 @@ with st.sidebar:
         limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
 
     delta = st.slider('Trailing Delta', value = 0.5,
-                      min_value = 0.1, max_value = 10.0, key = 'delta_slider')
+                      min_value = 0.1, max_value = 10.0)
 
     # Every form must have a submit button.
     with st.form('order_trailling_stop', clear_on_submit = True):
-        submitted = st.form_submit_button('Add Order', type = 'primary', use_container_width = True)
+        submitted = st.form_submit_button('Add Order', type = 'primary',
+                                           use_container_width = True,)
+                                        #    on_click = form_callback)
 
         if submitted:
             add_order = {
@@ -83,6 +86,7 @@ with st.sidebar:
 with st.container():
     st.title('Trailling Stop on Binance')
     # st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M:%S'))
+    # st.write(state)
 
     if not df_order.empty:
         symbol_order = st.selectbox('Symbol',
@@ -96,7 +100,7 @@ with st.container():
         col1, col2 = st.columns([3, 1])
         with col1:
             freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
-            period = st.radio('Period', freqs, index = 3,
+            period = st.radio('Period', freqs, index = 1,
                               horizontal = True, label_visibility = 'visible')
         with col2:
             selected_ordered = st.radio('By Order', (False, True),

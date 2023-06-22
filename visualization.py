@@ -47,7 +47,8 @@ def getKlinesOrdered(data, order):
     cuttedloss = df.dropna(subset = ['cuttedloss'])
     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
 
-    return df[['act_price', 'limit_price', 'delta', 'actived', 'limited', 'stoploss', 'cuttedloss']]
+    # return df[['act_price', 'limit_price', 'delta', 'actived', 'limited', 'stoploss', 'cuttedloss']]
+    return df[['actived', 'limit_price', 'stoploss']]
 
 def update(data, placeholder, period, order, selected_ordered, lock):
     lock.acquire()
@@ -55,7 +56,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
     df = getKlinesOrdered(data, order)
     df = data.join(df, how = 'outer').reset_index()
     if selected_ordered:
-        df.dropna(subset = ['act_price'], inplace = True)
+        df.dropna(subset = ['stoploss'], inplace = True)
 
     df = df.resample(period, on = 'index').agg({
         'open': 'first',
@@ -63,7 +64,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         'low': 'min',
         'close': 'last',
         'volume': 'sum',
-        'act_price': 'last',
+        # 'act_price': 'last',
         'actived': 'last',
         'limit_price': 'last',
         'stoploss': 'last'
@@ -103,16 +104,16 @@ def update(data, placeholder, period, order, selected_ordered, lock):
                 showlegend = False
             ), row = 2, col = 1
         )
-        fig.append_trace(
-            go.Scatter(
-                x = df.index,
-                y = df.act_price,
-                line = dict(color = '#034EFF', width = 1, dash = 'dot'),
-                name = 'Act Price',
-                showlegend = True,
-                mode = 'lines'
-            ), row = 1, col = 1
-        )
+        # fig.append_trace(
+        #     go.Scatter(
+        #         x = df.index,
+        #         y = df.act_price,
+        #         line = dict(color = '#034EFF', width = 1, dash = 'dot'),
+        #         name = 'Act Price',
+        #         showlegend = True,
+        #         mode = 'lines'
+        #     ), row = 1, col = 1
+        # )
         fig.append_trace(
             go.Scatter(
                 x = df.index,
