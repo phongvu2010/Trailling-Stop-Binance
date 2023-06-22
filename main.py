@@ -96,7 +96,7 @@ with st.container():
         col1, col2 = st.columns([3, 1])
         with col1:
             freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
-            period = st.radio('Period', freqs, index = 0,
+            period = st.radio('Period', freqs, index = 3,
                               horizontal = True, label_visibility = 'visible')
         with col2:
             selected_ordered = st.radio('By Order', (False, True),
