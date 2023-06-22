@@ -3,15 +3,13 @@
 
 import json
 import pandas as pd
-import streamlit as st
 import websocket
 
 from datetime import datetime
 from base_sql import save_klines
-from plotly import graph_objs as go
-from plotly.subplots import make_subplots
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
 from threading import Thread, Lock
+from visualization import update
 
 def on_close(ws, close_status_code, close_msg):
     print('LOG:', close_status_code)
@@ -20,41 +18,10 @@ def on_close(ws, close_status_code, close_msg):
 def on_error(ws, error):
     print('ERROR:', error)
 
-def update(df, placeholder, lock):
-    lock.acquire()
-
-    with placeholder.container():
-        with st.container():
-            fig = make_subplots(rows = 1, cols = 1)
-            fig.append_trace(
-                go.Candlestick(
-                    x = df.index,
-                    open = df.open,
-                    high = df.high,
-                    low = df.low,
-                    close = df.close,
-                    increasing_line_color = 'green',
-                    decreasing_line_color = 'red',
-                    showlegend = False
-                ), row = 1, col = 1
-            )
-            fig.update_layout(
-                go.Layout(
-                    autosize = True, height = 450,
-                    margin = go.layout.Margin(l = 5, r = 5, b = 20, t = 20, pad = 8),
-                    xaxis_rangeslider_visible = False
-                )
-            )
-            st.plotly_chart(fig, use_container_width = True)
-
-            st.markdown('### Detailed Data View ###')
-            st.dataframe(df.sort_index(ascending = False), use_container_width = True)
-
-    lock.release()
-
 class Kline():
-    def __init__(self, session, df, symbol, placeholder, interval = '5m'):
-        self.session = session
+    # def __init__(self, session, df, symbol, placeholder, interval = '5m'):
+    def __init__(self, df, symbol, placeholder, interval = '5m'):
+        # self.session = session
         self.df = df
         self.symbol = symbol
         self.placeholder = placeholder

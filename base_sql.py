@@ -22,12 +22,10 @@ db_name = os.environ.get('DB_NAME')
 db = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
 engine = create_engine(db)
 
-# Create a session variable. Allows all our transactions to be ran in the context of a session
-Session = sessionmaker(bind = engine)
-
 Base = declarative_base()
 
-# Create a new session
+# Create a session variable. Allows all our transactions to be ran in the context of a session
+Session = sessionmaker(bind = engine)
 session = Session()
 
 def create_table():
@@ -43,29 +41,8 @@ def create_table():
     finally:
         session.close()
 
-# def save_klines(df):
-#     df.to_sql('klines_temp', engine, if_exists = 'replace', index = False)
-
-#     try:
-#         with engine.connect() as conn:
-#             conn.execute(text('''
-#                 INSERT INTO klines (start_time, symbol, open, high, low , close, volume)
-#                 SELECT * FROM klines_temp
-#                 ON CONFLICT (start_time, symbol)
-#                 DO UPDATE SET
-#                 open = EXCLUDED.open,
-#                 high = EXCLUDED.high,
-#                 low = EXCLUDED.low,
-#                 close = EXCLUDED.close,
-#                 volume = EXCLUDED.volume;
-#             '''))
-#             conn.execute(text('DROP TABLE klines_temp;'))
-#             conn.commit()
-#     except SQLAlchemyError as e:
-#         conn.rollback()
-#         print(str(e))
-#     finally:
-#         conn.close()
+# This functions creates the table if it does not exist
+create_table()
 
 def save_klines(df):
     # https://www.programcreek.com/python/example/105995/sqlalchemy.dialects.postgresql.insert
@@ -100,3 +77,27 @@ def save_orders(order):
         print(str(e))
     finally:
         session.close()
+
+# def save_klines(df):
+#     df.to_sql('klines_temp', engine, if_exists = 'replace', index = False)
+
+#     try:
+#         with engine.connect() as conn:
+#             conn.execute(text('''
+#                 INSERT INTO klines (start_time, symbol, open, high, low , close, volume)
+#                 SELECT * FROM klines_temp
+#                 ON CONFLICT (start_time, symbol)
+#                 DO UPDATE SET
+#                 open = EXCLUDED.open,
+#                 high = EXCLUDED.high,
+#                 low = EXCLUDED.low,
+#                 close = EXCLUDED.close,
+#                 volume = EXCLUDED.volume;
+#             '''))
+#             conn.execute(text('DROP TABLE klines_temp;'))
+#             conn.commit()
+#     except SQLAlchemyError as e:
+#         conn.rollback()
+#         print(str(e))
+#     finally:
+#         conn.close()
