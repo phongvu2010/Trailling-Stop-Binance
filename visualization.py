@@ -81,7 +81,8 @@ def update(data, placeholder, period, order, selected_ordered, lock):
             else:
                 colors.append('red')
 
-        fig = make_subplots(rows = 2, cols = 1, row_heights = [80, 20], shared_xaxes = True, vertical_spacing = 0)
+        fig = make_subplots(rows = 2, cols = 1, row_heights = [80, 20],
+                            shared_xaxes = True, vertical_spacing = 0)
         fig.append_trace(
             go.Candlestick(
                 x = df.index,

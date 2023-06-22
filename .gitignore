@@ -5,5 +5,3 @@
 
 .streamlit/secrets.toml
 .env
-test.py
-test.ipynb

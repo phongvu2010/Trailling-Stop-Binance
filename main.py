@@ -19,9 +19,6 @@ with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
 state = st.session_state
-# def form_callback():
-    # state.my_slider
-
 prices = get_prices()
 df_order = get_orders()
 
@@ -65,7 +62,6 @@ with st.sidebar:
     with st.form('order_trailling_stop', clear_on_submit = True):
         submitted = st.form_submit_button('Add Order', type = 'primary',
                                            use_container_width = True,)
-                                        #    on_click = form_callback)
 
         if submitted:
             add_order = {
@@ -86,7 +82,6 @@ with st.sidebar:
 with st.container():
     st.title('Trailling Stop on Binance')
     # st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M:%S'))
-    # st.write(state)
 
     if not df_order.empty:
         symbol_order = st.selectbox('Symbol',
