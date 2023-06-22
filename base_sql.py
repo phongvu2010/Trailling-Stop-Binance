@@ -2,17 +2,15 @@ import os
 import pandas as pd
 
 from dotenv import load_dotenv
-from models import Kline, Order
+from models import Base, Kline, Order
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from urllib import parse
 
 # Take environment variables from .env
 load_dotenv()
-
 db_host = os.environ.get('DB_HOST')
 db_port = os.environ.get('DB_PORT')
 db_user = os.environ.get('DB_USER')
@@ -22,27 +20,12 @@ db_name = os.environ.get('DB_NAME')
 db = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
 engine = create_engine(db)
 
-Base = declarative_base()
-
 # Create a session variable. Allows all our transactions to be ran in the context of a session
 Session = sessionmaker(bind = engine)
 session = Session()
 
-def create_table():
-    # Attempts to create the base tables and populate the db in a session.
-    # In case of an issue rolls back the session
-    try:
-        # Generate schema
-        Base.metadata.create_all(engine)
-        session.commit()
-    except SQLAlchemyError as e:
-        session.rollback()
-        print(str(e))
-    finally:
-        session.close()
-
 # This functions creates the table if it does not exist
-create_table()
+Base.metadata.create_all(engine)
 
 def save_klines(df):
     # https://www.programcreek.com/python/example/105995/sqlalchemy.dialects.postgresql.insert
@@ -68,15 +51,20 @@ def get_orders():
         print('Unable to select records ' + print(str(e)))
         return None
 
-def save_orders(order):
-    try:
-        session.add(order)
-        session.commit()
-    except SQLAlchemyError as e:
-        session.rollback()
-        print(str(e))
-    finally:
-        session.close()
+def save_orders(df):
+    records = df.to_dict(orient = 'records')
+
+    order_table = Order.__table__
+    ins = insert(order_table)
+    upsert = ins.on_conflict_do_update(constraint = order_table.primary_key, set_ = {
+        'time_order': ins.excluded.time_order,
+        'type': ins.excluded.type,
+        'act_price': ins.excluded.act_price,
+        'limit_price': ins.excluded.limit_price,
+        'delta': ins.excluded.delta
+    })
+    with engine.begin() as conn:
+        conn.execute(upsert, [r for r in records])
 
 # def save_klines(df):
 #     df.to_sql('klines_temp', engine, if_exists = 'replace', index = False)

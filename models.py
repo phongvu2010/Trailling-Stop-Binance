@@ -1,7 +1,8 @@
-from sqlalchemy import Column, DateTime, String, Float, Integer
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, DateTime, String, Float
+from sqlalchemy.orm import DeclarativeBase
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 class Kline(Base):
     __tablename__ = 'klines'
@@ -26,17 +27,16 @@ class Kline(Base):
 class Order(Base):
     __tablename__ = 'orders'
 
-    id = Column(Integer(), primary_key = True)
+    symbol = Column(String(20), primary_key = True)
     time_order = Column(DateTime())
-    symbol = Column(String(20))
     type = Column(String(10))
     act_price = Column(Float())
     limit_price = Column(Float())
     delta = Column(Float())
 
-    def __int__(self, time_order, symbol, type, act_price, limit_price, delta):
-        self.time_order = time_order
+    def __int__(self, symbol, time_order, type, act_price, limit_price, delta):
         self.symbol = symbol
+        self.time_order = time_order
         self.type = type
         self.act_price = act_price
         self.limit_price = limit_price

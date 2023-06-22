@@ -8,13 +8,13 @@ from datetime import datetime
 client = Client()
 
 @st.cache_data(ttl = 60 * 2, show_spinner = False)
-def getPrices():
+def get_prices():
     data = client.get_all_tickers()
 
     return pd.DataFrame(data).set_index('symbol').astype('float')
 
 @st.cache_data(ttl = 60 * 60, show_spinner = False)
-def getKlines(symbol, tick_interval = '5m'):
+def get_klines(symbol, tick_interval = '5m'):
     data = client.get_klines(symbol = symbol.upper(), interval = tick_interval, limit = 1000)
 
     df = pd.DataFrame(data)

@@ -19,12 +19,13 @@ def on_error(ws, error):
     print('ERROR:', error)
 
 class Kline():
-    # def __init__(self, session, df, symbol, placeholder, interval = '5m'):
-    def __init__(self, df, symbol, placeholder, interval = '5m'):
-        # self.session = session
+    def __init__(self, df, symbol, placeholder, period, order, selected_ordered, interval = '5m'):
         self.df = df
         self.symbol = symbol
         self.placeholder = placeholder
+        self.period = period
+        self.order = order
+        self.selected_ordered = selected_ordered
         self.interval = interval
         self.lock = Lock()
 
@@ -74,7 +75,8 @@ class Kline():
         message = json.loads(message)
         if 'k' in message:
             self.handle_message(message['k'])
-            thr = Thread(target = update, args = (self.df, self.placeholder, self.lock))
+            thr = Thread(target = update, args = (self.df, self.placeholder, self.period,
+                                                  self.order, self.selected_ordered, self.lock))
             add_script_run_ctx(thr)
             thr.start()
 
