@@ -109,6 +109,7 @@ with st.container():
         placeholder = st.empty()
 
         if not order.empty:
+            # order['time_order'] = pd.to_datetime(order['time_order'])
             order.set_index('time_order', inplace = True)
             data = get_data(symbol_order)
-            Kline(data, symbol_order, placeholder, period, order, selected_ordered).run()
+            Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
