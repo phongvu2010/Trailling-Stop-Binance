@@ -1,5 +1,4 @@
 import pandas as pd
-import pytz
 import streamlit as st
 
 from binance.client import Client
@@ -23,7 +22,7 @@ def get_klines(symbol, tick_interval = '5m'):
                          3: 'low', 4: 'close', 5: 'volume'}, inplace = True)
 
     df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
-    df['start_time'] = pd.to_datetime(df['start_time'], utc = False)
-    df['start_time'] = df['start_time'].dt.tz_localize('UTC').dt.tz_convert('Asia/Ho_Chi_Minh')
-
+    # df['start_time'] = pd.to_datetime(df['start_time'], utc = False)
+    df['start_time'] = df['start_time'].dt.tz_localize('Asia/Ho_Chi_Minh')#.dt.tz_convert('Asia/Ho_Chi_Minh')
+    print(df['start_time'])
     return df.set_index('start_time').astype('float').sort_index()
