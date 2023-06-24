@@ -2,11 +2,10 @@ import pandas as pd
 import pytz
 import streamlit as st
 
-from base_sql import get_orders, save_orders
 from dataset import get_prices, get_klines
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
-from threading import Lock
+from os import path
 from visualization import update
 
 # Basic Page Configuration
@@ -19,9 +18,12 @@ st.set_page_config(page_title = 'Trailling Stop Binance',
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-state = st.session_state
 prices = get_prices()
-df_order = get_orders()
+
+path_file_orders = 'orders.csv'
+if path.isfile(path_file_orders):
+    df_order = pd.read_csv(path_file_orders)
+else: df_order = pd.DataFrame()
 
 # Run the autorefresh about every 300000 milliseconds (300 seconds)
 # and stop after it's been refreshed 100 times.
@@ -63,7 +65,6 @@ with st.sidebar:
     with st.form('order_trailling_stop', clear_on_submit = True):
         submitted = st.form_submit_button('Add Order', type = 'primary',
                                            use_container_width = True,)
-
         if submitted:
             add_order = {
                 'time_order': datetime.combine(date_order, time_order),
@@ -74,11 +75,11 @@ with st.sidebar:
                 'delta': delta
             }
             df_add_order = pd.DataFrame(list(add_order.items())).set_index(0).T
-            save_orders(df_add_order)
             df_order = pd.concat([df_order, df_add_order]) \
-                        .drop_duplicates(subset = 'symbol', keep = 'last') \
-                        .sort_values('time_order', ascending = False) \
+                        .sort_values(['time_order'], ascending = False) \
+                        .drop_duplicates(subset = 'symbol', keep = 'first') \
                         .reset_index(drop = True)
+            df_order.to_csv(path_file_orders, index = False)
 
 with st.container():
     st.title('Trailling Stop on Binance')
@@ -86,7 +87,7 @@ with st.container():
 
     if not df_order.empty:
         symbol_order = st.selectbox('Symbol',
-                                    df_order['symbol'].to_list(),
+                                    df_order['symbol'].unique(),
                                     label_visibility = 'collapsed')
 
         with st.expander('Ordered Detail', expanded = False):
@@ -106,7 +107,6 @@ with st.container():
         placeholder = st.empty()
 
         if not order.empty:
-            # order['time_order'] = pd.to_datetime(order['time_order'])
             order.set_index('time_order', inplace = True)
             data = get_klines(symbol_order)
-            update(data, placeholder, period, order.head(1), selected_ordered, Lock())
+            update(data, placeholder, period, order.head(1), selected_ordered)

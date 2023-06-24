@@ -5,9 +5,10 @@ import streamlit as st
 from plotly import graph_objs as go
 from plotly.subplots import make_subplots
 
-@st.cache_data(ttl = 300, show_spinner = False)
+@st.cache_data(ttl = 60 * 5, show_spinner = False)
 def getKlinesOrdered(data, order):
     df = data.join(order, how = 'outer')
+    df.index = pd.to_datetime(df.index)
     df.sort_index(inplace = True)
     df.ffill(inplace = True)
     df.dropna(inplace = True)
@@ -57,10 +58,9 @@ def getKlinesOrdered(data, order):
         # 'cuttedloss'
     ]]
 
-def update(data, placeholder, period, order, selected_ordered, lock):
-    lock.acquire()
-
+def update(data, placeholder, period, order, selected_ordered):
     df = getKlinesOrdered(data, order)
+
     df = data.join(df, how = 'outer').reset_index()
     if selected_ordered:
         df.dropna(subset = ['stoploss'], inplace = True)
@@ -162,5 +162,3 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         st.markdown('### Detailed Data View ###')
         st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
                      use_container_width = True)
-
-    lock.release()
