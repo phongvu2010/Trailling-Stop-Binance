@@ -23,7 +23,6 @@ def get_klines(symbol, tick_interval = '5m'):
 
     df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
     df['start_time'] = pd.to_datetime(df['start_time'], utc = False)
-
-    # df['start_time'] = df['start_time'].dt.tz_localize(tz = 'Asia/Ho_Chi_Minh')
+    df['start_time'] = df['start_time'].dt.tz_localize(tz = 'Asia/Ho_Chi_Minh')
 
     return df.set_index('start_time').astype('float').sort_index()
