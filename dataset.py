@@ -22,7 +22,7 @@ def get_klines(symbol, tick_interval = '5m'):
                          3: 'low', 4: 'close', 5: 'volume'}, inplace = True)
 
     df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
-    df['start_time'] = pd.to_datetime(df['start_time'], utc = True)
+    df['start_time'] = pd.to_datetime(df['start_time'], utc = False)
 
     # df['start_time'] = df['start_time'].dt.tz_localize(tz = 'Asia/Ho_Chi_Minh')
 
