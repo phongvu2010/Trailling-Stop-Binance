@@ -18,17 +18,25 @@ db_pass = parse.quote_plus(os.environ.get('DB_PASS'))
 db_name = os.environ.get('DB_NAME')
 
 db = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
-engine = create_engine(db)
 
-# Create a session variable. Allows all our transactions to be ran in the context of a session
-Session = sessionmaker(bind = engine)
-session = Session()
 
-# This functions creates the table if it does not exist
-Base.metadata.create_all(engine)
+try:
+    engine = create_engine(db)
+    engine.connect()
 
-def save_klines(df):
+    # Create a session variable. Allows all our transactions to be ran in the context of a session
+    Session = sessionmaker(bind = engine)
+    session = Session()
+
+    # This functions creates the table if it does not exist
+    Base.metadata.create_all(engine)
+except SQLAlchemyError as e:
+    print(str(e))
+    engine = None
+
+def save_klines(df, symbol):
     # https://www.programcreek.com/python/example/105995/sqlalchemy.dialects.postgresql.insert
+    df['symbol'] = symbol
     records = df.to_dict(orient = 'records')
 
     kline_table = Kline.__table__
