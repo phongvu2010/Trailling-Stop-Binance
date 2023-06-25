@@ -9,20 +9,19 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from urllib import parse
 
-# Take environment variables from .env
-load_dotenv()
-db_host = os.environ.get('DB_HOST')
-db_port = os.environ.get('DB_PORT')
-db_user = os.environ.get('DB_USER')
-db_pass = parse.quote_plus(os.environ.get('DB_PASS'))
-db_name = os.environ.get('DB_NAME')
-
-db = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
-
-
 try:
+    # Take environment variables from .env
+    load_dotenv()
+    db_host = os.environ.get('DB_HOST')
+    db_port = os.environ.get('DB_PORT')
+    db_user = os.environ.get('DB_USER')
+    db_pass = parse.quote_plus(os.environ.get('DB_PASS'))
+    db_name = os.environ.get('DB_NAME')
+
+    db = f'postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}'
+
     engine = create_engine(db)
-    engine.connect()
+    # engine.connect()
 
     # Create a session variable. Allows all our transactions to be ran in the context of a session
     Session = sessionmaker(bind = engine)
@@ -30,7 +29,7 @@ try:
 
     # This functions creates the table if it does not exist
     Base.metadata.create_all(engine)
-except SQLAlchemyError as e:
+except Exception as e:
     print(str(e))
     engine = None
 
