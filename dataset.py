@@ -21,10 +21,9 @@ def get_klines(symbol, tick_interval = '5m'):
     df = df[df.columns[0:6]]
     df.rename(columns = {0: 'start_time', 1: 'open', 2: 'high',
                          3: 'low', 4: 'close', 5: 'volume'}, inplace = True)
-    timezone = pytz.timezone('Asia/Ho_Chi_Minh')
-    df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))#.astimezone(timezone))
-    # df['start_time'] = pd.to_datetime(df['start_time'], utc = False)
+
+    df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
+
     df['start_time'] = df['start_time'] + pd.Timedelta(hours = 7)
-    # df['start_time'] = df['start_time'].dt.tz_localize('Asia/Ho_Chi_Minh')#.dt.tz_convert('Asia/Ho_Chi_Minh')
 
     return df.set_index('start_time').astype('float').sort_index()

@@ -83,6 +83,8 @@ with st.sidebar:
 
 with st.container():
     st.title('Trailling Stop on Binance')
+    import time
+    st.write(time.strftime('%Z', time.localtime()))
     st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M:%S'))
 
     if not df_order.empty:
