@@ -33,9 +33,8 @@ except Exception as e:
     print(str(e))
     engine = None
 
-def save_klines(df, symbol):
+def save_klines(df):
     # https://www.programcreek.com/python/example/105995/sqlalchemy.dialects.postgresql.insert
-    df['symbol'] = symbol
     records = df.to_dict(orient = 'records')
 
     kline_table = Kline.__table__

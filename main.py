@@ -2,6 +2,7 @@ import pandas as pd
 import pytz
 import streamlit as st
 
+from base_sql import engine, get_orders, save_orders
 from dataset import get_prices, get_klines
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
@@ -21,10 +22,13 @@ with open('style.css') as f:
 
 prices = get_prices()
 
-path_file_orders = 'orders.csv'
-if path.isfile(path_file_orders):
-    df_order = pd.read_csv(path_file_orders)
-else: df_order = pd.DataFrame()
+if engine:
+    df_order = get_orders()
+else:
+    path_file_orders = 'orders.csv'
+    if path.isfile(path_file_orders):
+        df_order = pd.read_csv(path_file_orders)
+    else: df_order = pd.DataFrame()
 
 # Run the autorefresh about every 300000 milliseconds (300 seconds)
 # and stop after it's been refreshed 100 times.
@@ -76,6 +80,7 @@ with st.sidebar:
                 'delta': delta
             }
             df_add_order = pd.DataFrame(list(add_order.items())).set_index(0).T
+            if engine: save_orders(df_add_order)
             df_order = pd.concat([df_order, df_add_order]) \
                         .sort_values(['time_order'], ascending = False) \
                         .drop_duplicates(subset = 'symbol', keep = 'first') \
@@ -84,7 +89,6 @@ with st.sidebar:
 
 with st.container():
     st.title('Trailling Stop on Binance')
-
     st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M:%S'))
 
     if not df_order.empty:

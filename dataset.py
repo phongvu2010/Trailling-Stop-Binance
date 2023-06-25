@@ -27,9 +27,12 @@ def get_klines(symbol, tick_interval = '5m'):
     timezone = time.strftime('%Z', time.localtime())
     if timezone == 'UTC':
         df['start_time'] = df['start_time'] + pd.Timedelta(hours = 7)
-
     df = df.set_index('start_time').astype('float').sort_index()
+
     if engine:
-        save_klines(df, symbol)
+        temp = df.copy().reset_index()
+        temp['symbol'] = symbol
+
+        save_klines(temp)
 
     return df
