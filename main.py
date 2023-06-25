@@ -5,6 +5,7 @@ import streamlit as st
 from base_sql import engine, get_orders, save_orders
 from dataset import get_prices, get_klines
 from datetime import datetime
+from streamer import Kline
 from streamlit_autorefresh import st_autorefresh
 from os import path
 from threading import Lock
@@ -20,6 +21,11 @@ st.set_page_config(page_title = 'Trailling Stop Binance',
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
+@st.cache_data(ttl = 60 * 60, show_spinner = False)
+def get_data(symbol_order):
+    return get_klines(symbol_order)
+
+params = st.experimental_get_query_params()
 prices = get_prices()
 path_file_orders = 'orders.csv'
 
@@ -32,7 +38,8 @@ else:
 
 # Run the autorefresh about every 300000 milliseconds (300 seconds)
 # and stop after it's been refreshed 100 times.
-st_autorefresh(interval = 300000, limit = 100, key = 'refresh_page')
+if not params:
+    st_autorefresh(interval = 300000, limit = 100, key = 'refresh_page')
 
 with st.sidebar:
     columns = st.columns(2)
@@ -114,5 +121,10 @@ with st.container():
 
         if not order.empty:
             order.set_index('time_order', inplace = True)
-            data = get_klines(symbol_order)
-            update(data, placeholder, period, order.head(1), selected_ordered, Lock())
+            if not params:
+                data = get_klines(symbol_order)
+                update(data, placeholder, period, order.head(1), selected_ordered, Lock())
+            else:
+                if params['realtime']:
+                    data = get_data(symbol_order)
+                    Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
