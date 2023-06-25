@@ -1,6 +1,6 @@
 import pandas as pd
-import pytz
 import streamlit as st
+import time
 
 from binance.client import Client
 from datetime import datetime
@@ -24,6 +24,8 @@ def get_klines(symbol, tick_interval = '5m'):
 
     df['start_time'] = df['start_time'].apply(lambda x: datetime.fromtimestamp(x / 1000))
 
-    df['start_time'] = df['start_time'] + pd.Timedelta(hours = 7)
+    timezone = time.strftime('%Z', time.localtime())
+    if timezone == 'UTC':
+        df['start_time'] = df['start_time'] + pd.Timedelta(hours = 7)
 
     return df.set_index('start_time').astype('float').sort_index()
