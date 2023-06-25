@@ -21,11 +21,11 @@ with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
 prices = get_prices()
+path_file_orders = 'orders.csv'
 
 if engine:
     df_order = get_orders()
 else:
-    path_file_orders = 'orders.csv'
     if path.isfile(path_file_orders):
         df_order = pd.read_csv(path_file_orders)
     else: df_order = pd.DataFrame()
