@@ -63,12 +63,14 @@ with st.sidebar:
     columns = st.columns(2)
     with columns[0]:
         price = prices.at[symbol, 'price']
-        act_price = st.number_input('Act Price', value = price, step = 0.00000001, format = '%.8f')
+        act_price = st.number_input('Act Price', value = price,
+                                    step = 0.00000001, format = '%.8f')
 
     with columns[1]:
         if type_order == 'Buy': limit = act_price * (1 - limit_detail)
         else: limit = act_price * (1 + limit_detail)
-        limit_price = st.number_input('Limit Price', value = limit, step = 0.00000001, format = '%.8f')
+        limit_price = st.number_input('Limit Price', value = limit,
+                                      step = 0.00000001, format = '%.8f')
 
     delta = st.slider('Trailing Delta', value = 0.5,
                       min_value = 0.1, max_value = 10.0)
