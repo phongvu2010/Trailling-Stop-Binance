@@ -58,9 +58,10 @@ def getKlinesOrdered(data, order):
         # 'cuttedloss'
     ]]
 
-def update(data, placeholder, period, order, selected_ordered):
-    df = getKlinesOrdered(data, order)
+def update(data, placeholder, period, order, selected_ordered, lock):
+    lock.acquire()
 
+    df = getKlinesOrdered(data, order)
     df = data.join(df, how = 'outer').reset_index()
     if selected_ordered:
         df.dropna(subset = ['stoploss'], inplace = True)
@@ -162,3 +163,5 @@ def update(data, placeholder, period, order, selected_ordered):
         st.markdown('### Detailed Data View ###')
         st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
                      use_container_width = True)
+
+    lock.release()

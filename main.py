@@ -6,6 +6,7 @@ from dataset import get_prices, get_klines
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 from os import path
+from threading import Lock
 from visualization import update
 
 # Basic Page Configuration
@@ -110,4 +111,4 @@ with st.container():
         if not order.empty:
             order.set_index('time_order', inplace = True)
             data = get_klines(symbol_order)
-            update(data, placeholder, period, order.head(1), selected_ordered)
+            update(data, placeholder, period, order.head(1), selected_ordered, Lock())

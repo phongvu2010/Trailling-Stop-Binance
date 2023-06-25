@@ -2,6 +2,7 @@ import pandas as pd
 import streamlit as st
 import time
 
+from base_sql import save_klines
 from binance.client import Client
 from datetime import datetime
 
