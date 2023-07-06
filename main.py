@@ -89,7 +89,7 @@ with st.sidebar:
                 'delta': delta
             }
             df_add_order = pd.DataFrame(list(add_order.items())).set_index(0).T
-            if engine: save_orders(df_add_order)
+            # if engine: save_orders(df_add_order)
             df_order = pd.concat([df_order, df_add_order]) \
                         .sort_values(['time_order'], ascending = False) \
                         .drop_duplicates(subset = 'symbol', keep = 'first') \
