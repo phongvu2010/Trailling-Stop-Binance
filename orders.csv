@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 time_order,symbol,type,act_price,limit_price,delta
 2023-07-05 19:54:00,BNBBTC,Buy,0.007847,0.0081,2.0
 2023-06-23 01:57:00,BNBBTC,Buy,0.008116,0.008,1.0
+=======
+symbol,time_order,type,act_price,limit_price,delta
+BNBETH,2023-07-02 15:18:00,Sell,0.1281,0.129381,2.0
+BNBBTC,2023-07-01 16:41:00,Sell,0.007947,0.00802647,3.0
+>>>>>>> fd9a4adb7eab67ec6c61d3047c2e07efca0b7964
