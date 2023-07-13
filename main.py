@@ -2,9 +2,11 @@ import pandas as pd
 import pytz
 import streamlit as st
 
-from dataset import get_orders, get_prices
+from dataset import get_orders, get_prices, get_klines
 from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
+from threading import Lock
+from visualization import update
 
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
@@ -75,4 +77,36 @@ with st.sidebar:
             df_order = get_orders(add_order)
 
 with st.container():
-    st.dataframe(df_order)
+    st.title('Trailling Stop on Binance')
+    st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M'))
+
+    if not df_order.empty:
+        symbol_order = st.selectbox('Symbol',
+                                    df_order['symbol'].unique(),
+                                    label_visibility = 'collapsed')
+
+        with st.expander('Ordered Detail', expanded = False):
+            order = df_order[df_order['symbol'] == symbol_order]
+            st.write(order.to_dict('records')[0])
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
+            period = st.radio('Period', freqs, index = 1,
+                              horizontal = True, label_visibility = 'visible')
+        with col2:
+            selected_ordered = st.radio('By Order', (False, True),
+                                        horizontal = True, label_visibility = 'visible')
+
+        # Creating a single-element container
+        placeholder = st.empty()
+    
+        if not order.empty:
+            order.set_index('time_order', inplace = True)
+            if not params:
+                data = get_klines(symbol_order)
+                update(data, placeholder, period, order.head(1), selected_ordered, Lock())
+            # else:
+            #     if params['realtime']:
+            #         data = get_data(symbol_order)
+            #         Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
