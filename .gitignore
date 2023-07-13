@@ -1,7 +1,5 @@
 /.DS_Store
 /.venv
 /__pycache__
-# /temp
 
-.streamlit/secrets.toml
 .env

@@ -2,14 +2,9 @@ import pandas as pd
 import pytz
 import streamlit as st
 
-from base_sql import engine, get_orders, save_orders
-from dataset import get_prices, get_klines
+from dataset import get_orders, get_prices
 from datetime import datetime
-from streamer import Kline
 from streamlit_autorefresh import st_autorefresh
-from os import path
-from threading import Lock
-from visualization import update
 
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
@@ -21,20 +16,10 @@ st.set_page_config(page_title = 'Trailling Stop Binance',
 with open('style.css') as f:
     st.markdown(f'<style>{ f.read() }</style>', unsafe_allow_html = True)
 
-@st.cache_data(ttl = 60 * 60, show_spinner = False)
-def get_data(symbol_order):
-    return get_klines(symbol_order)
-
 params = st.experimental_get_query_params()
+timezone = pytz.timezone('Asia/Ho_Chi_Minh')
+df_order = get_orders()
 prices = get_prices()
-path_file_orders = 'orders.csv'
-
-if engine:
-    df_order = get_orders()
-else:
-    if path.isfile(path_file_orders):
-        df_order = pd.read_csv(path_file_orders)
-    else: df_order = pd.DataFrame()
 
 # Run the autorefresh about every 300000 milliseconds (300 seconds)
 # and stop after it's been refreshed 100 times.
@@ -49,7 +34,6 @@ with st.sidebar:
     with columns[1]:
         type_order = st.selectbox('Type', ('Buy', 'Sell'))
 
-    timezone = pytz.timezone('Asia/Ho_Chi_Minh')
     columns = st.columns(2)
     with columns[0]:
         date_order = st.date_input('Date Order', datetime.now(timezone))
@@ -88,45 +72,7 @@ with st.sidebar:
                 'limit_price': round(limit_price, 8),
                 'delta': delta
             }
-            df_add_order = pd.DataFrame(list(add_order.items())).set_index(0).T
-            # if engine: save_orders(df_add_order)
-            df_order = pd.concat([df_order, df_add_order]) \
-                        .sort_values(['time_order'], ascending = False) \
-                        .drop_duplicates(subset = 'symbol', keep = 'first') \
-                        .reset_index(drop = True)
-            df_order.to_csv(path_file_orders, index = False)
+            df_order = get_orders(add_order)
 
 with st.container():
-    st.title('Trailling Stop on Binance')
-    st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M:%S'))
-
-    if not df_order.empty:
-        symbol_order = st.selectbox('Symbol',
-                                    df_order['symbol'].unique(),
-                                    label_visibility = 'collapsed')
-
-        with st.expander('Ordered Detail', expanded = False):
-            order = df_order[df_order['symbol'] == symbol_order]
-            st.write(order.to_dict('records')[0])
-
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            freqs = ['5min', '15min', '30min', '1H', '2H', '4H']
-            period = st.radio('Period', freqs, index = 1,
-                              horizontal = True, label_visibility = 'visible')
-        with col2:
-            selected_ordered = st.radio('By Order', (False, True),
-                                        horizontal = True, label_visibility = 'visible')
-
-        # Creating a single-element container
-        placeholder = st.empty()
-
-        if not order.empty:
-            order.set_index('time_order', inplace = True)
-            if not params:
-                data = get_klines(symbol_order)
-                update(data, placeholder, period, order.head(1), selected_ordered, Lock())
-            else:
-                if params['realtime']:
-                    data = get_data(symbol_order)
-                    Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
+    st.dataframe(df_order)

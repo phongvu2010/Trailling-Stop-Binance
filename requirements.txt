@@ -21,13 +21,13 @@
 
 
 plotly
-psycopg2-binary
+# psycopg2-binary
 # pymongo
 python-binance
-python-dotenv
-sqlalchemy
+# python-dotenv
+# sqlalchemy
 streamlit
 streamlit_autorefresh
 # streamlit-lightweight-charts
 watchdog
-websocket-client
+# websocket-client
