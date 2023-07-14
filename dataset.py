@@ -2,17 +2,12 @@ import pandas as pd
 import streamlit as st
 import time
 
+# from base_sql import engine, save_klines
 from binance.client import Client
 from datetime import datetime
 from os import path
 
 client = Client()
-
-@st.cache_data(ttl = 60 * 2, show_spinner = False)
-def get_prices():
-    df = pd.DataFrame(client.get_all_tickers())
-
-    return df.set_index('symbol').astype('float').sort_index()
 
 @st.cache_data(ttl = 60 * 60 * 1, show_spinner = False)
 def get_orders(d_obj = {}):
@@ -32,6 +27,12 @@ def get_orders(d_obj = {}):
         data.to_csv(path_file_orders, index = False)
 
     return data.reset_index(drop = True)
+
+@st.cache_data(ttl = 60 * 2, show_spinner = False)
+def get_prices():
+    df = pd.DataFrame(client.get_all_tickers())
+
+    return df.set_index('symbol').astype('float').sort_index()
 
 @st.cache_data(ttl = 60 * 5, show_spinner = False)
 def get_klines(symbol, tick_interval = '5m'):
