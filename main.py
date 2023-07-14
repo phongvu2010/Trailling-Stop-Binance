@@ -119,7 +119,6 @@ with st.container():
         #             data = get_data(symbol_order)
         #             Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
 
-# https://stackoverflow.com/questions/74449270/python-streamlit-aggrid-add-new-row-to-aggrid-table
 with st.container():
     # checkbox_renderer = JsCode("""
     #     class CheckboxRenderer {
@@ -146,25 +145,24 @@ with st.container():
     # """)
 
     gb = GridOptionsBuilder.from_dataframe(df_order)
-    # Add pagination
-    # gb.configure_pagination(enabled = True,
-    #                         paginationAutoPageSize = False,
-    #                         paginationPageSize = 15)
 
-    # gb.configure_default_column(resizable = True, filterable = True,
-    #                             sortable = True, editable = True, groupable = False)
-    # gb.configure_column(field = 'symbol',
-    #                     header_name = 'Mã CK',
-    #                     editable = False,
-    #                     width = 60)
-    # gb.configure_column(field = 'market',
-    #                     header_name = 'Sàn',
-    #                     cellEditor = 'agSelectCellEditor',
-    #                     cellEditorParams = {'values': ['HNX', 'HSX', 'UPCOM']},
-    #                     width = 60)
-    # gb.configure_column(field = 'company_name',
-    #                     header_name = 'Tên công ty',
-    #                     valueFormatter = 'value.toUpperCase()')
+    # Add pagination
+    gb.configure_pagination(enabled = False,
+                            paginationAutoPageSize = True,
+                            paginationPageSize = 15)
+
+    gb.configure_default_column(editable = False, resizable = False, filterable = True,
+                                sortable = True, groupable = False)
+    gb.configure_column(field = 'symbol',
+                        # header_name = 'Mã CK',
+                        editable = False,
+                        width = 60)
+    gb.configure_column(field = 'time_order',
+                        valueFormatter = 'value.toUpperCase()')
+    gb.configure_column(field = 'type',
+                        cellEditor = 'agSelectCellEditor',
+                        cellEditorParams = {'values': ['Buy', 'Sell']},
+                        width = 60)
     # gb.configure_column(field = 'enabled',
     #                     header_name = 'Niêm yết',
     #                     cellRenderer = checkbox_renderer,
@@ -174,19 +172,22 @@ with st.container():
     # gb.configure_side_bar(filters_panel = True, columns_panel = True)
 
     # Enable multi-row selection
-    gb.configure_selection(selection_mode = 'multiple', use_checkbox = False,
-                           groupSelectsChildren = 'Group checkbox select children')
+    gb.configure_selection(selection_mode = 'multiple',
+                           use_checkbox = False,)
+                        #    groupSelectsChildren = 'Group checkbox select children')
+
     gridOptions = gb.build()
 
-    # grid_response = m.list_aggrid(data_companies, gridOptions)
     grid_response = AgGrid(
-        df_order, gridOptions = gridOptions, reload_data = False,
-        data_return_mode = 'AS_INPUT',
+        df_order,
+        gridOptions = gridOptions,
+        # reload_data = False,
+        # data_return_mode = 'AS_INPUT',
         update_mode = 'SELECTION_CHANGED',
-        fit_columns_on_grid_load = True,
+        # fit_columns_on_grid_load = True,
         # Add theme color to the table: alpine, balham, material, streamlit 
-        # theme = 'streamlit',
-        enable_enterprise_modules = True,
+        theme = 'material',
+        # enable_enterprise_modules = True,
         # allow_unsafe_jscode = True,
         width = '100%'
     )
