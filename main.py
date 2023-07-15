@@ -6,11 +6,10 @@ import streamlit as st
 from dataset import get_orders, get_prices, get_klines
 from datetime import datetime
 # from streamer import Kline
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 from streamlit_autorefresh import st_autorefresh
 
-# from threading import Lock
-# from visualization import update
+from threading import Lock
+from visualization import update, getKlinesOrdered
 
 @st.cache_data(ttl = 60 * 60, show_spinner = False)
 def get_data(symbol_order):
@@ -19,7 +18,7 @@ def get_data(symbol_order):
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = 'Trailling Stop Binance',
-                   page_icon = '✅', layout = 'centered',
+                   page_icon = '✅', layout = 'wide',
                    initial_sidebar_state = 'collapsed')
 
 # Inject CSS with Markdown
@@ -106,98 +105,17 @@ with st.container():
             selected_ordered = st.radio('By Order', (False, True),
                                         horizontal = True, label_visibility = 'visible')
 
-        # # Creating a single-element container
-        # placeholder = st.empty()
+        # Creating a single-element container
+        placeholder = st.empty()
 
-        # if not order.empty:
-        #     order.set_index('time_order', inplace = True)
-        #     if not params:
-        #         data = get_klines(symbol_order)
-        #         update(data, placeholder, period, order.head(1), selected_ordered, Lock())
-        #     else:
-        #         if params['realtime']:
-        #             data = get_data(symbol_order)
-        #             Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
-
-with st.container():
-    # checkbox_renderer = JsCode("""
-    #     class CheckboxRenderer {
-    #         init(params) {
-    #             this.params = params;
-    #             this.eGui = document.createElement('input');
-    #             this.eGui.type = 'checkbox';
-    #             this.eGui.checked = params.value;
-    #             this.checkedHandler = this.checkedHandler.bind(this);
-    #             this.eGui.addEventListener('click', this.checkedHandler);
-    #         }
-    #         checkedHandler(e) {
-    #             let checked = e.target.checked;
-    #             let colId = this.params.column.colId;
-    #             this.params.node.setDataValue(colId, checked);
-    #         }
-    #         getGui(params) {
-    #             return this.eGui;
-    #         }
-    #         destroy(params) {
-    #             this.eGui.removeEventListener('click', this.checkedHandler);
-    #         }
-    #     } //end class
-    # """)
-
-    gb = GridOptionsBuilder.from_dataframe(df_order)
-
-    # Add pagination
-    gb.configure_pagination(enabled = False,
-                            paginationAutoPageSize = True,
-                            paginationPageSize = 15)
-
-    gb.configure_default_column(editable = False, resizable = False, filterable = True,
-                                sortable = True, groupable = False)
-    gb.configure_column(field = 'symbol',
-                        # header_name = 'Mã CK',
-                        editable = False,
-                        width = 60)
-    gb.configure_column(field = 'time_order',
-                        valueFormatter = 'value.toUpperCase()')
-    gb.configure_column(field = 'type',
-                        cellEditor = 'agSelectCellEditor',
-                        cellEditorParams = {'values': ['Buy', 'Sell']},
-                        width = 60)
-    # gb.configure_column(field = 'enabled',
-    #                     header_name = 'Niêm yết',
-    #                     cellRenderer = checkbox_renderer,
-    #                     width = 60)
-
-    # Add a sidebar
-    # gb.configure_side_bar(filters_panel = True, columns_panel = True)
-
-    # Enable multi-row selection
-    gb.configure_selection(selection_mode = 'multiple',
-                           use_checkbox = False,)
-                        #    groupSelectsChildren = 'Group checkbox select children')
-
-    gridOptions = gb.build()
-
-    grid_response = AgGrid(
-        df_order,
-        gridOptions = gridOptions,
-        # reload_data = False,
-        # data_return_mode = 'AS_INPUT',
-        update_mode = 'SELECTION_CHANGED',
-        # fit_columns_on_grid_load = True,
-        # Add theme color to the table: alpine, balham, material, streamlit 
-        theme = 'material',
-        # enable_enterprise_modules = True,
-        # allow_unsafe_jscode = True,
-        width = '100%'
-    )
-
-    # sel_row = grid_response['selected_rows']
-    # df_sel_row = pd.DataFrame(sel_row)
-    # if not df_sel_row.empty:
-    #     df = df_sel_row[['market', 'symbol', 'company_name', 'enabled']]
-    #     # st.dataframe(df, use_container_width = True)
-    #     if st.button('Save', type = 'primary'):
-    #         if not df.empty:
-    #             insert_companies(df, True)
-    #             st.cache_data.clear()
+        if not order.empty:
+            if not params:
+                order.set_index('time_order', inplace = True)
+                data = get_klines(symbol_order)
+                update(data, placeholder, period, order.head(1), selected_ordered, Lock())
+                # df = getKlinesOrdered(data, order.head(1))
+                # st.dataframe(df, use_container_width = True)
+            # else:
+            #     if params['realtime']:
+            #         data = get_data(symbol_order)
+            #         Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()

@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 
 @st.cache_data(ttl = 60 * 5, show_spinner = False)
 def getKlinesOrdered(data, order):
-    df = data.join(order, how = 'outer')
+    df = data.join(order[['type', 'act_price', 'limit_price', 'delta']], how = 'outer')
     df.index = pd.to_datetime(df.index)
     df.sort_index(inplace = True)
     df.ffill(inplace = True)
@@ -18,14 +18,14 @@ def getKlinesOrdered(data, order):
                              np.where(df['act_price'] < df['high'], df['act_price'], np.nan))
     df['actived'].ffill(inplace = True)
 
-    # df['limited'] = np.where(df['type'] == 'Buy',
-    #                          np.where((df['limit_price'] > df['low']) & df['actived'].notna(),
-    #                                   df['limit_price'], np.nan),
-    #                          np.where((df['limit_price'] < df['high']) & df['actived'].notna(),
-    #                                   df['limit_price'], np.nan))
-    # df['limited'].ffill(inplace = True)
-    # # limited = df.dropna(subset = ['limited'])
-    # # df = pd.concat([df[df['limited'].isna()], limited.head(1)])
+    df['limited'] = np.where(df['type'] == 'Buy',
+                             np.where((df['limit_price'] > df['low']) & df['actived'].notna(),
+                                      df['limit_price'], np.nan),
+                             np.where((df['limit_price'] < df['high']) & df['actived'].notna(),
+                                      df['limit_price'], np.nan))
+    df['limited'].ffill(inplace = True)
+    limited = df.dropna(subset = ['limited'])
+    df = pd.concat([df[df['limited'].isna()], limited.head(1)])
 
     df['stoploss'] = np.nan
     df_ = df.copy().dropna(subset = ['actived'])
@@ -49,13 +49,13 @@ def getKlinesOrdered(data, order):
     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
 
     return df[[
-        # 'act_price',
+        'act_price',
         'limit_price',
-        # 'delta',
+        'delta',
         'actived',
-        # 'limited',
+        'limited',
         'stoploss',
-        # 'cuttedloss'
+        'cuttedloss'
     ]]
 
 def update(data, placeholder, period, order, selected_ordered, lock):
@@ -72,10 +72,13 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         'low': 'min',
         'close': 'last',
         'volume': 'sum',
-        # 'act_price': 'last',
-        'actived': 'last',
+        'act_price': 'last',
         'limit_price': 'last',
-        'stoploss': 'last'
+        'delta': 'last',
+        'actived': 'last',
+        'limited': 'last',
+        'stoploss': 'last',
+        'cuttedloss': 'last'
     })
 
     with placeholder.container():
@@ -161,7 +164,8 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         st.plotly_chart(fig, use_container_width = True)
 
         st.markdown('### Detailed Data View ###')
-        st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
-                     use_container_width = True)
+        # st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
+        #              use_container_width = True)
+        st.dataframe(df.sort_index(ascending = False), use_container_width = True)
 
     lock.release()
