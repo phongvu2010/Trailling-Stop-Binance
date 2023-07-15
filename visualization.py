@@ -164,8 +164,8 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         st.plotly_chart(fig, use_container_width = True)
 
         st.markdown('### Detailed Data View ###')
-        # st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
-        #              use_container_width = True)
-        st.dataframe(df.sort_index(ascending = False), use_container_width = True)
+        st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
+                     use_container_width = True)
+        # st.dataframe(df.sort_index(ascending = False), use_container_width = True)
 
     lock.release()

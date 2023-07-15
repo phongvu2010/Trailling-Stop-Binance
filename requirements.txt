@@ -20,7 +20,11 @@
 # pip3 freeze > requirements.txt
 
 
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
 plotly
+pip
 # psycopg2-binary
 # pymongo
 python-binance

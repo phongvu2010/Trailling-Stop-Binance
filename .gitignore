@@ -3,3 +3,4 @@
 /__pycache__
 
 .env
+.credential/google_api_credentials.json

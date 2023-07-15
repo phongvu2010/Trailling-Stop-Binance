@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 import time
-
+import spreadsheet_api as ssheet
 # from base_sql import engine, save_klines
 from binance.client import Client
 from datetime import datetime
@@ -11,10 +11,17 @@ client = Client()
 
 @st.cache_data(ttl = 60 * 60 * 1, show_spinner = False)
 def get_orders(d_obj = {}):
-    path_file_orders = 'orders.csv'
-    if path.isfile(path_file_orders):
-        data = pd.read_csv(path_file_orders)
-    else: data = pd.DataFrame()
+    # path_file_orders = 'orders.csv'
+    # if path.isfile(path_file_orders):
+    #     data = pd.read_csv(path_file_orders)
+    # else: data = pd.DataFrame()
+    sheet = ssheet.SpreadSheets('1BO5ojBc7shuBcb5GDTPkb9wnU3Aj6KnK126rfsEoWIs')
+
+    data = sheet.read_from_gsheet('Orders')
+    data['time_order'] = pd.to_datetime(data['time_order'])
+    data['act_price'] = data['act_price'].astype(float)
+    data['limit_price'] = data['limit_price'].astype(float)
+    data['delta'] = data['delta'].astype(float)
 
     if d_obj:
         df_obj = pd.DataFrame(list(d_obj.items())).set_index(0).T
@@ -24,7 +31,14 @@ def get_orders(d_obj = {}):
         data = data.sort_values(['time_order'], ascending = False)
         data = data.drop_duplicates(subset = 'symbol', keep = 'first')
 
-        data.to_csv(path_file_orders, index = False)
+        temp = data.copy()
+        temp['time_order'] = temp['time_order'].dt.strftime('%Y-%m-%d %H:%M:%S')
+        temp['act_price'] = temp['act_price'].astype(str)
+        temp['limit_price'] = temp['limit_price'].astype(str)
+        temp['delta'] = temp['delta'].astype(str)
+
+        # data.to_csv(path_file_orders, index = False)
+        sheet.write_to_gsheet(temp, 'Orders')
 
     return data.reset_index(drop = True)
 
