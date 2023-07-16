@@ -39,6 +39,7 @@ def get_orders(d_obj = {}):
 
         # data.to_csv(path_file_orders, index = False)
         sheet.write_to_gsheet(temp, 'Orders')
+        st.cache_data.clear()
 
     return data.reset_index(drop = True)
 

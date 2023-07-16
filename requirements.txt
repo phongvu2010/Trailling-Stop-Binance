@@ -25,14 +25,8 @@ google-auth-httplib2
 google-auth-oauthlib
 plotly
 pip
-# psycopg2-binary
-# pymongo
 python-binance
-# python-dotenv
-# sqlalchemy
 streamlit
 streamlit-aggrid
 streamlit_autorefresh
-# streamlit-lightweight-charts
 watchdog
-# websocket-client

@@ -6,7 +6,7 @@ import pandas as pd
 import websocket
 
 from datetime import datetime
-from base_sql import save_klines
+# from base_sql import save_klines
 from streamlit.runtime.scriptrunner.script_run_context import add_script_run_ctx
 from threading import Thread, Lock
 from visualization import update
@@ -67,7 +67,7 @@ class Kline():
             df_temp.loc[1, 'low'] = low_price
             df_temp.loc[1, 'close'] = close_price
             df_temp.loc[1, 'volume'] = volume
-            save_klines(df_temp)
+            # save_klines(df_temp)
 
         self.lock.release()
 
