@@ -1,5 +1,5 @@
 /* #MainMenu { visibility: hidden; } */
-footer  { visibility: hidden; }
+footer { visibility: hidden; }
 
 .appview-container .main .block-container { margin-top: -90px; }
 
@@ -10,10 +10,3 @@ footer  { visibility: hidden; }
     width: 330px;
     }
 }
-
-/* .appview-container .main .block-container [data-testid = 'stExpander'] input, select {
-    vertical-align: middle;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-} */

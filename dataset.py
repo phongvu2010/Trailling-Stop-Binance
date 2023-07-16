@@ -2,19 +2,13 @@ import pandas as pd
 import streamlit as st
 import time
 import spreadsheet_api as ssheet
-# from base_sql import engine, save_klines
 from binance.client import Client
 from datetime import datetime
-from os import path
 
 client = Client()
 
 @st.cache_data(ttl = 60 * 60 * 1, show_spinner = False)
 def get_orders(d_obj = {}):
-    # path_file_orders = 'orders.csv'
-    # if path.isfile(path_file_orders):
-    #     data = pd.read_csv(path_file_orders)
-    # else: data = pd.DataFrame()
     sheet = ssheet.SpreadSheets('1BO5ojBc7shuBcb5GDTPkb9wnU3Aj6KnK126rfsEoWIs')
 
     data = sheet.read_from_gsheet('Orders')
@@ -37,7 +31,6 @@ def get_orders(d_obj = {}):
         temp['limit_price'] = temp['limit_price'].astype(str)
         temp['delta'] = temp['delta'].astype(str)
 
-        # data.to_csv(path_file_orders, index = False)
         sheet.write_to_gsheet(temp, 'Orders')
         st.cache_data.clear()
 
@@ -63,11 +56,5 @@ def get_klines(symbol, tick_interval = '5m'):
     if timezone == 'UTC':
         df['start_time'] = df['start_time'] + pd.Timedelta(hours = 7)
     df = df.set_index('start_time').astype('float').sort_index()
-
-    # if engine:
-    #     temp = df.copy().reset_index()
-    #     temp['symbol'] = symbol
-
-    #     save_klines(temp)
 
     return df

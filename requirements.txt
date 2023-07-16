@@ -27,6 +27,7 @@ plotly
 pip
 python-binance
 streamlit
-streamlit-aggrid
+# streamlit-aggrid
 streamlit_autorefresh
 watchdog
+# websocket

@@ -1,15 +1,13 @@
-# import pandas as pd
 import pytz
 import streamlit as st
 
-# from base_sql import engine, get_orders, save_orders
 from dataset import get_orders, get_prices, get_klines
 from datetime import datetime
-from streamer import Kline
+# from streamer import Kline
 from streamlit_autorefresh import st_autorefresh
 
 from threading import Lock
-from visualization import update, getKlinesOrdered
+from visualization import update
 
 @st.cache_data(ttl = 60 * 60, show_spinner = False)
 def get_data(symbol_order):
@@ -113,9 +111,7 @@ with st.container():
                 order.set_index('time_order', inplace = True)
                 data = get_klines(symbol_order)
                 update(data, placeholder, period, order.head(1), selected_ordered, Lock())
-                # df = getKlinesOrdered(data, order.head(1))
-                # st.dataframe(df, use_container_width = True)
-            else:
-                if params['realtime']:
-                    data = get_data(symbol_order)
-                    Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
+            # else:
+            #     if params['realtime']:
+            #         data = get_data(symbol_order)
+            #         Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
