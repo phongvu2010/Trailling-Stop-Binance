@@ -16,7 +16,7 @@ def get_data(symbol_order):
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = 'Trailling Stop Binance',
-                   page_icon = '✅', layout = 'wide',
+                   page_icon = '✅', layout = 'centered',
                    initial_sidebar_state = 'collapsed')
 
 # Inject CSS with Markdown

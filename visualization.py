@@ -151,7 +151,12 @@ def update(data, placeholder, period, order, selected_ordered, lock):
 
         st.markdown('### Detailed Data View ###')
         df.sort_index(ascending = False, inplace = True)
-        df = df.style.format("{:.8f}")
+        df = df[["open", "high", "low", "close", "volume"]]
+        df = df.style.format({"open": "{:.8f}",
+                              "high": "{:.8f}",
+                              "low": "{:.8f}",
+                              "close": "{:.8f}",
+                              "volume": "{:.2f}"})
         st.dataframe(df, use_container_width = True)
 
     lock.release()
