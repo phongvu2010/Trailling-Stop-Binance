@@ -16,7 +16,7 @@ def get_data(symbol_order):
 # Basic Page Configuration
 # Find more emoji here: https://www.webfx.com/tools/emoji-cheat-sheet/
 st.set_page_config(page_title = 'Trailling Stop Binance',
-                   page_icon = '✅', layout = 'centered',
+                   page_icon = '✅', layout = 'wide',
                    initial_sidebar_state = 'collapsed')
 
 # Inject CSS with Markdown
@@ -80,14 +80,16 @@ with st.sidebar:
 
 with st.container():
     st.title('Trailling Stop on Binance')
-    st.write(datetime.now(timezone))#.strftime('%d/%m/%Y, %H:%M'))
+    
 
     if not df_order.empty:
-        symbol_order = st.selectbox('Symbol',
-                                    df_order['symbol'].unique(),
-                                    label_visibility = 'collapsed')
-
-        with st.expander('Ordered Detail', expanded = False):
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            st.write(datetime.now(timezone))
+            symbol_order = st.selectbox('Symbol',
+                                        df_order['symbol'].unique(),
+                                        label_visibility = 'collapsed')
+        with col2:
             order = df_order[df_order['symbol'] == symbol_order]
             st.write(order.to_dict('records')[0])
 
