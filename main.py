@@ -80,7 +80,7 @@ with st.sidebar:
 
 with st.container():
     st.title('Trailling Stop on Binance')
-    st.write(datetime.now(timezone).strftime('%d/%m/%Y, %H:%M'))
+    st.write(datetime.now(timezone))#.strftime('%d/%m/%Y, %H:%M'))
 
     if not df_order.empty:
         symbol_order = st.selectbox('Symbol',

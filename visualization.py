@@ -43,24 +43,20 @@ def getKlinesOrdered(data, order):
     df['stoploss'] = np.where(df['stoploss'].isna(), df['limit_price'], df['stoploss'])
 
     df['cuttedloss'] = np.where(df['type'] == 'Buy',
-                                np.where(df['stoploss'] < df['close'], df['close'], np.nan),
-                                np.where(df['stoploss'] > df['close'], df['close'], np.nan))
+                                np.where(df['stoploss'] < df['close'], df['stoploss'], np.nan),
+                                np.where(df['stoploss'] > df['close'], df['stoploss'], np.nan))
     df['cuttedloss'].ffill(inplace = True)
     cuttedloss = df.dropna(subset = ['cuttedloss'])
     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
 
-    return df[[
-        'act_price',
-        'actived',
-        'stoploss',
-        'cuttedloss'
-    ]]
+    return df[['act_price', 'actived', 'stoploss', 'cuttedloss']]
 
 def update(data, placeholder, period, order, selected_ordered, lock):
     lock.acquire()
 
     df = getKlinesOrdered(data, order)
     df = data.join(df, how = 'outer').reset_index()
+    df.dropna(subset = ['close'], inplace = True)
     if selected_ordered:
         df.dropna(subset = ['act_price'], inplace = True)
 
@@ -115,8 +111,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
                 y = df.act_price,
                 line = dict(color = '#0303FC', width = 1),
                 name = 'Active Price',
-                showlegend = True,
-                # mode = 'lines'
+                showlegend = True
             ), row = 1, col = 1
         )
         fig.append_trace(
@@ -125,8 +120,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
                 y = df.actived,
                 line = dict(color = '#49FC03', dash = 'dot', width = 1),
                 name = 'Actived Price',
-                showlegend = True,
-                # mode = 'lines'
+                showlegend = True
             ), row = 1, col = 1
         )
         fig.append_trace(
@@ -135,8 +129,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
                 y = df.stoploss,
                 line = dict(color = '#F78502', dash = 'dashdot', width = 1),
                 name = 'Stop Loss',
-                showlegend = True,
-                # mode = 'lines'
+                showlegend = True
             ), row = 1, col = 1
         )
         fig.update_layout(
