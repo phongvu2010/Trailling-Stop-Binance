@@ -3,7 +3,7 @@ import streamlit as st
 
 from dataset import get_orders, get_prices, get_klines
 from datetime import datetime
-from streamer import Kline
+# from streamer import Kline
 from streamlit_autorefresh import st_autorefresh
 
 from threading import Lock
@@ -109,7 +109,7 @@ with st.container():
                 order.set_index('time_order', inplace = True)
                 data = get_klines(symbol_order)
                 update(data, placeholder, period, order.head(1), selected_ordered, Lock())
-            else:
-                if params['realtime']:
-                    data = get_data(symbol_order)
-                    Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
+            # else:
+            #     if params['realtime']:
+            #         data = get_data(symbol_order)
+            #         Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()

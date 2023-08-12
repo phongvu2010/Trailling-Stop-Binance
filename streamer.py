@@ -80,7 +80,6 @@ class Kline():
             thr.start()
 
     def run(self):
-        import rel
         url = self.url + self.stream
         # websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp(url,
@@ -88,10 +87,4 @@ class Kline():
                                          on_message = self.on_message,
                                          on_error = on_error,
                                          on_close = on_close)
-        # Set dispatcher to automatic reconnection, 5 second
-        # reconnect delay if connection closed unexpectedly
-        self.ws.run_forever(dispatcher = rel, reconnect = 5)
-
-        # Keyboard Interrupt
-        rel.signal(2, rel.abort)
-        rel.dispatch()
+        self.ws.run_forever()
