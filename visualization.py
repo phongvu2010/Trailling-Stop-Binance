@@ -14,18 +14,18 @@ def getKlinesOrdered(data, order):
     df.dropna(inplace = True)
 
     df['actived'] = np.where(df['type'] == 'Buy',
-                             np.where(df['act_price'] > df['low'], df['act_price'], np.nan),
-                             np.where(df['act_price'] < df['high'], df['act_price'], np.nan))
+                             np.where(df['act_price'] > df['close'], df['act_price'], np.nan),
+                             np.where(df['act_price'] < df['close'], df['act_price'], np.nan))
     df['actived'].ffill(inplace = True)
 
-    df['limited'] = np.where(df['type'] == 'Buy',
-                             np.where((df['limit_price'] > df['low']) & df['actived'].notna(),
-                                      df['limit_price'], np.nan),
-                             np.where((df['limit_price'] < df['high']) & df['actived'].notna(),
-                                      df['limit_price'], np.nan))
-    df['limited'].ffill(inplace = True)
-    limited = df.dropna(subset = ['limited'])
-    df = pd.concat([df[df['limited'].isna()], limited.head(1)])
+    # df['limited'] = np.where(df['type'] == 'Buy',
+    #                          np.where((df['limit_price'] > df['low']) & df['actived'].notna(),
+    #                                   df['limit_price'], np.nan),
+    #                          np.where((df['limit_price'] < df['high']) & df['actived'].notna(),
+    #                                   df['limit_price'], np.nan))
+    # df['limited'].ffill(inplace = True)
+    # limited = df.dropna(subset = ['limited'])
+    # df = pd.concat([df[df['limited'].isna()], limited.head(1)])
 
     df['stoploss'] = np.nan
     df_ = df.copy().dropna(subset = ['actived'])
@@ -40,6 +40,7 @@ def getKlinesOrdered(data, order):
             df_.at[i, 'stoploss'] = b * (1 - (a.at[i, 'delta'] / 100)) \
                 if b >= max(a['high'].to_list()) else np.nan
     df['stoploss'] = df_['stoploss'].ffill()
+    df['stoploss'] = np.where(df['stoploss'].isna(), df['limit_price'], df['stoploss'])
 
     df['cuttedloss'] = np.where(df['type'] == 'Buy',
                                 np.where(df['stoploss'] < df['close'], df['close'], np.nan),
@@ -50,10 +51,7 @@ def getKlinesOrdered(data, order):
 
     return df[[
         'act_price',
-        'limit_price',
-        'delta',
         'actived',
-        'limited',
         'stoploss',
         'cuttedloss'
     ]]
@@ -64,7 +62,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
     df = getKlinesOrdered(data, order)
     df = data.join(df, how = 'outer').reset_index()
     if selected_ordered:
-        df.dropna(subset = ['stoploss'], inplace = True)
+        df.dropna(subset = ['act_price'], inplace = True)
 
     df = df.resample(period, on = 'index').agg({
         'open': 'first',
@@ -73,10 +71,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         'close': 'last',
         'volume': 'sum',
         'act_price': 'last',
-        'limit_price': 'last',
-        'delta': 'last',
         'actived': 'last',
-        'limited': 'last',
         'stoploss': 'last',
         'cuttedloss': 'last'
     })
@@ -110,40 +105,38 @@ def update(data, placeholder, period, order, selected_ordered, lock):
             go.Bar(
                 x = df.index,
                 y = df.volume,
-                marker = dict(
-                    color = colors
-                ),
+                marker = dict(color = colors),
                 showlegend = False
             ), row = 2, col = 1
         )
         fig.append_trace(
             go.Scatter(
                 x = df.index,
-                y = df.actived,
-                line = dict(color = '#BEF702', width = 1),
-                name = 'Actived',
+                y = df.act_price,
+                line = dict(color = '#0303FC', width = 1),
+                name = 'Active Price',
                 showlegend = True,
-                mode = 'lines'
+                # mode = 'lines'
             ), row = 1, col = 1
         )
         fig.append_trace(
             go.Scatter(
                 x = df.index,
-                y = df.limit_price,
-                line = dict(color = '#FF4E03', width = 1, dash = 'dot'),
-                name = 'Limit Price',
+                y = df.actived,
+                line = dict(color = '#49FC03', dash = 'dot', width = 1),
+                name = 'Actived Price',
                 showlegend = True,
-                mode = 'lines'
+                # mode = 'lines'
             ), row = 1, col = 1
         )
         fig.append_trace(
             go.Scatter(
                 x = df.index,
                 y = df.stoploss,
-                line = dict(color = '#F78502', width = 1),
-                name = 'StopLoss',
+                line = dict(color = '#F78502', dash = 'dashdot', width = 1),
+                name = 'Stop Loss',
                 showlegend = True,
-                mode = 'lines'
+                # mode = 'lines'
             ), row = 1, col = 1
         )
         fig.update_layout(
@@ -155,7 +148,7 @@ def update(data, placeholder, period, order, selected_ordered, lock):
                 yaxis_autorange = True,
                 legend = dict(
                     orientation = 'h',
-                    x = 0, y = 0.98,
+                    x = 0, y = 1.05,
                     xanchor = 'left',
                     yanchor = 'top'
                 )
@@ -164,7 +157,8 @@ def update(data, placeholder, period, order, selected_ordered, lock):
         st.plotly_chart(fig, use_container_width = True)
 
         st.markdown('### Detailed Data View ###')
-        st.dataframe(df[['open', 'high', 'low', 'close', 'volume']].sort_index(ascending = False),
-                     use_container_width = True)
+        df.sort_index(ascending = False, inplace = True)
+        df = df.style.format("{:.8f}")
+        st.dataframe(df, use_container_width = True)
 
     lock.release()

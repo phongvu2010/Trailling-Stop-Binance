@@ -3,7 +3,7 @@ import streamlit as st
 
 from dataset import get_orders, get_prices, get_klines
 from datetime import datetime
-# from streamer import Kline
+from streamer import Kline
 from streamlit_autorefresh import st_autorefresh
 
 from threading import Lock
@@ -48,8 +48,8 @@ with st.sidebar:
     with columns[1]:
         time_order = st.time_input('Time Order', datetime.now(timezone))
 
-    limit_detail = st.slider('Limit Delta', value = 0.01,
-                             min_value = 0.01, max_value = 0.1)
+    delta = st.slider('Trailing Delta', value = 1.0,
+                      min_value = 0.1, max_value = 10.0)
 
     columns = st.columns(2)
     with columns[0]:
@@ -58,18 +58,15 @@ with st.sidebar:
                                     step = 0.00000001, format = '%.8f')
 
     with columns[1]:
-        if type_order == 'Buy': limit = act_price * (1 - limit_detail)
-        else: limit = act_price * (1 + limit_detail)
+        if type_order == 'Buy': limit = act_price * (1 + delta / 100)
+        else: limit = act_price * (1 - delta / 100)
         limit_price = st.number_input('Limit Price', value = limit,
                                       step = 0.00000001, format = '%.8f')
-
-    delta = st.slider('Trailing Delta', value = 0.5,
-                      min_value = 0.1, max_value = 10.0)
 
     # Every form must have a submit button.
     with st.form('order_trailling_stop', clear_on_submit = True):
         submitted = st.form_submit_button('Add Order', type = 'primary',
-                                           use_container_width = True,)
+                                           use_container_width = True)
         if submitted:
             add_order = {
                 'time_order': datetime.combine(date_order, time_order),
@@ -111,7 +108,7 @@ with st.container():
                 order.set_index('time_order', inplace = True)
                 data = get_klines(symbol_order)
                 update(data, placeholder, period, order.head(1), selected_ordered, Lock())
-            # else:
-            #     if params['realtime']:
-            #         data = get_data(symbol_order)
-            #         Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()
+            else:
+                if params['realtime']:
+                    data = get_data(symbol_order)
+                    Kline(data, symbol_order, placeholder, period, order.head(1), selected_ordered).run()

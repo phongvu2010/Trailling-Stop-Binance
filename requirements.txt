@@ -30,4 +30,4 @@ streamlit
 # streamlit-aggrid
 streamlit_autorefresh
 watchdog
-# websocket
+websocket

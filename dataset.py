@@ -10,29 +10,26 @@ client = Client()
 @st.cache_data(ttl = 60 * 60 * 1, show_spinner = False)
 def get_orders(d_obj = {}):
     sheet = ssheet.SpreadSheets('1BO5ojBc7shuBcb5GDTPkb9wnU3Aj6KnK126rfsEoWIs')
-
     data = sheet.read_from_gsheet('Orders')
+
+    if d_obj:
+        df_obj = pd.DataFrame(list(d_obj.items())).set_index(0).T    
+        data = pd.concat([data, df_obj])
+
+        data['time_order'] = pd.to_datetime(data['time_order']).dt.strftime('%Y-%m-%d %H:%M:%S')
+        data['act_price'] = data['act_price'].astype(str)
+        data['limit_price'] = data['limit_price'].astype(str)
+        data['delta'] = data['delta'].astype(str)
+
+        data = data.drop_duplicates(subset = 'symbol', keep = 'last')
+
+        sheet.write_to_gsheet(data, 'Orders')
+        st.cache_data.clear()
+
     data['time_order'] = pd.to_datetime(data['time_order'])
     data['act_price'] = data['act_price'].astype(float)
     data['limit_price'] = data['limit_price'].astype(float)
     data['delta'] = data['delta'].astype(float)
-
-    if d_obj:
-        df_obj = pd.DataFrame(list(d_obj.items())).set_index(0).T
-
-        data = pd.concat([data, df_obj])
-        data['time_order'] = pd.to_datetime(data['time_order'])
-        data = data.sort_values(['time_order'], ascending = False)
-        data = data.drop_duplicates(subset = 'symbol', keep = 'first')
-
-        temp = data.copy()
-        temp['time_order'] = temp['time_order'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        temp['act_price'] = temp['act_price'].astype(str)
-        temp['limit_price'] = temp['limit_price'].astype(str)
-        temp['delta'] = temp['delta'].astype(str)
-
-        sheet.write_to_gsheet(temp, 'Orders')
-        st.cache_data.clear()
 
     return data.reset_index(drop = True)
 
