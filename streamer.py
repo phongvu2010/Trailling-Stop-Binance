@@ -28,7 +28,7 @@ class Kline():
         self.interval = interval
         self.lock = Lock()
 
-        self.url = 'wss://stream.binance.com:9443/ws'
+        self.url = 'wss://stream.binance.com:9443/ws/'
         self.stream = f'{self.symbol.lower()}@kline_{self.interval}'
 
     def on_open(self, ws):
@@ -80,9 +80,18 @@ class Kline():
             thr.start()
 
     def run(self):
-        self.ws = websocket.WebSocketApp(self.url,
-                                         on_close = on_close,
-                                         on_error = on_error,
+        import rel
+        url = self.url + self.stream
+        # websocket.enableTrace(True)
+        self.ws = websocket.WebSocketApp(url,
                                          on_open = self.on_open,
-                                         on_message = self.on_message)
-        self.ws.run_forever()
+                                         on_message = self.on_message,
+                                         on_error = on_error,
+                                         on_close = on_close)
+        # Set dispatcher to automatic reconnection, 5 second
+        # reconnect delay if connection closed unexpectedly
+        self.ws.run_forever(dispatcher = rel, reconnect = 5)
+
+        # Keyboard Interrupt
+        rel.signal(2, rel.abort)
+        rel.dispatch()

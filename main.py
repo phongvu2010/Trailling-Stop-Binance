@@ -80,7 +80,6 @@ with st.sidebar:
 
 with st.container():
     st.title('Trailling Stop on Binance')
-    
 
     if not df_order.empty:
         col1, col2 = st.columns([1, 3])
