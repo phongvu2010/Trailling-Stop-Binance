@@ -42,9 +42,10 @@ def getKlinesOrdered(data, order):
     df['stoploss'] = df_['stoploss'].ffill()
     df['stoploss'] = np.where(df['stoploss'].isna(), df['limit_price'], df['stoploss'])
 
-    df['cuttedloss'] = np.where(df['type'] == 'Buy',
-                                np.where(df['stoploss'] < df['close'], df['stoploss'], np.nan),
-                                np.where(df['stoploss'] > df['close'], df['stoploss'], np.nan))
+    # df['cuttedloss'] = np.where(df['type'] == 'Buy',
+    #                             np.where(df['stoploss'] < df['close'], df['stoploss'], np.nan),
+    #                             np.where(df['stoploss'] > df['close'], df['stoploss'], np.nan))
+    df['cuttedloss'] = np.where((df['stoploss'] < df['high']) & (df['stoploss'] > df['low']), df['stoploss'], np.nan)
     df['cuttedloss'].ffill(inplace = True)
     cuttedloss = df.dropna(subset = ['cuttedloss'])
     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
