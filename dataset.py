@@ -30,6 +30,7 @@ def get_orders(d_obj = {}):
     data['act_price'] = data['act_price'].astype(float)
     data['limit_price'] = data['limit_price'].astype(float)
     data['delta'] = data['delta'].astype(float)
+    data.sort_values(by = 'time_order', ascending = False, inplace = True)
 
     return data.reset_index(drop = True)
 
