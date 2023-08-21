@@ -14,8 +14,8 @@ def getKlinesOrdered(data, order):
     df.dropna(inplace = True)
 
     df['actived'] = np.where(df['type'] == 'Buy',
-                             np.where(df['act_price'] > df['close'], df['act_price'], np.nan),
-                             np.where(df['act_price'] < df['close'], df['act_price'], np.nan))
+                             np.where(df['act_price'] >= df['close'], df['act_price'], np.nan),
+                             np.where(df['act_price'] <= df['close'], df['act_price'], np.nan))
     df['actived'].ffill(inplace = True)
 
     # df['limited'] = np.where(df['type'] == 'Buy',
@@ -45,7 +45,7 @@ def getKlinesOrdered(data, order):
     # df['cuttedloss'] = np.where(df['type'] == 'Buy',
     #                             np.where(df['stoploss'] < df['close'], df['stoploss'], np.nan),
     #                             np.where(df['stoploss'] > df['close'], df['stoploss'], np.nan))
-    df['cuttedloss'] = np.where((df['stoploss'] < df['high']) & (df['stoploss'] > df['low']), df['stoploss'], np.nan)
+    df['cuttedloss'] = np.where((df['stoploss'] <= df['high']) & (df['stoploss'] >= df['low']), df['stoploss'], np.nan)
     df['cuttedloss'].ffill(inplace = True)
     cuttedloss = df.dropna(subset = ['cuttedloss'])
     df = pd.concat([df[df['cuttedloss'].isna()], cuttedloss.head(1)])
